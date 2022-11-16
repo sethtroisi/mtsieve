@@ -460,7 +460,7 @@ void  App::Sieve(void)
    
    useSingleThread = (il_LargestPrimeSieved < il_MaxPrimeForSingleWorker);
    
-   ip_PrimeIterator.skipto(il_LargestPrimeSieved, il_MaxPrime);
+   ip_PrimeIterator.jump_to(il_LargestPrimeSieved+1, il_MaxPrime);
    
    // In the first loop, run until we no longer need to use a single worker or until we can switch to the GPU.
    while ((useSingleThread || il_LargestPrimeSieved < il_MinGpuPrime) && il_LargestPrimeSieved < il_MaxPrime && IsRunning())
@@ -506,7 +506,7 @@ void  App::Sieve(void)
       {
          il_LargestPrimeSieved = PauseSievingAndRebuild();
          
-         ip_PrimeIterator.skipto(il_LargestPrimeSieved, il_MaxPrime);
+         ip_PrimeIterator.jump_to(il_LargestPrimeSieved+1, il_MaxPrime);
       }
       
       stoppedCount = 0;
