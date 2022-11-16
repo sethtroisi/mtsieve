@@ -19,7 +19,6 @@ class HashTable
 {
 public:
    HashTable(uint32_t elements);
-   HashTable(uint32_t babySteps, uint32_t bestQ, uint32_t powerResidueLcm);
 
    ~HashTable(void);
 
@@ -27,7 +26,11 @@ public:
 
    inline void Clear(void)
    {
-      memset(htable, 0, hsize*sizeof(uint16_t));
+      for(uint32_t i=0; i < hsize; i++) {
+          htable[i] = empty_slot;
+      }
+      // will never match a Lookup value
+      BJ64[empty_slot] = UINT64_MAX;
    }
 
    inline uint64_t get(uint32_t x) {return BJ64[x]; };
@@ -54,6 +57,8 @@ public:
 
       slot = bj & hsize_minus1;
       elt = htable[slot];
+
+      // Could check elt == empty_slot to avoid checking BJ64
 
       if (BJ64[elt & HASH_MASK2] == bj)
          return elt & HASH_MASK2;
