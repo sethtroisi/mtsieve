@@ -38,6 +38,8 @@ FactorApp::FactorApp(void)
 
 FactorApp::~FactorApp(void)
 {
+   delete ip_FactorAppLock;
+
    if (if_FactorFile)
       fclose(if_FactorFile);
 }
