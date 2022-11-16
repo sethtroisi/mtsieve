@@ -71,7 +71,7 @@ public:
          return elt_low;
 
       while (elt != elt_low) {
-         elt = olist[elt & HASH_MASK2];
+         elt = olist[elt_low];
          elt_low = elt & HASH_MASK2;
          if (BJ64[elt_low] == bj)
             return elt_low;

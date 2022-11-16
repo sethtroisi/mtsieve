@@ -447,7 +447,7 @@ void hashInsert(ulong bj, uint j, ushort *h_table, ushort *h_olist, ulong *h_BJ6
       h_table[slot] = j;
    else
    {
-      h_olist[j] = (h_table[slot] ^ HASH_MASK1);
+      h_olist[j] = h_table[slot];
       h_table[slot] = (j | HASH_MASK1);
    }
 }
@@ -455,25 +455,21 @@ void hashInsert(ulong bj, uint j, ushort *h_table, ushort *h_olist, ulong *h_BJ6
 uint hashLookup(ulong bj, ushort *h_table, ushort *h_olist, ulong *h_BJ64)
 {
    uint   slot;
-   ushort elt;
+   ushort elt, elt_low;
 
    slot = bj & (HASH_SIZE - 1);
    elt = h_table[slot];
+   elt_low = elt & HASH_MASK2;
 
-   if (h_BJ64[elt & HASH_MASK2] == bj)
-      return elt & HASH_MASK2;
+   if (h_BJ64[elt_low] == bj)
+      return elt_low;
 
-   if ((elt & HASH_MASK1) == 0)
-      return HASH_NOT_FOUND;
-
-   elt &= HASH_MASK2;
-   do
-   {
-      if (h_BJ64[h_olist[elt] & HASH_MASK2] == bj)
-         return h_olist[elt] & HASH_MASK2;
-
-      elt = h_olist[elt];
-   } while ((elt & HASH_MASK1) == 0);
+   while (elt != elt_low) {
+      elt = h_olist[elt_low];
+      elt_low = elt & HASH_MASK2;
+      if (h_BJ64[elt_low] == bj)
+         return elt_low;
+   }
 
    return HASH_NOT_FOUND;
 }
