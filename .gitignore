@@ -1,0 +1,38 @@
+
+# build artifacts
+*.o
+*.gpu.h
+
+# binaries
+afsieve
+afsievecl
+cksieve
+dmdsieve
+fbncsieve
+fkbnsieve
+gcwsieve
+gcwsievecl
+gfndsieve
+gfndsievecl
+k1b2sieve
+kbbsieve
+mfsieve
+mfsievecl
+pixsieve
+pixsievecl
+psieve
+psievecl
+sgsieve
+smsieve
+smsievecl
+srsieve2
+srsieve2cl
+twinsieve
+xyyxsieve
+xyyxsievecl
+
+# mtsieve artifacts
+
+*.abc
+*.log
+
