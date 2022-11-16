@@ -12,10 +12,7 @@
 #include "HashTable.h"
 
 #define HASH_MAX_DENSITY      0.60
-#define HASH_MIN_DENSITY      0.10
-
 #define HASH_MINIMUM_ELTS     8
-#define L1_CACHE_SIZE         32
 
 HashTable::HashTable(uint32_t elements)
 {

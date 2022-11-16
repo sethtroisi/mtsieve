@@ -105,8 +105,12 @@ void  GenericWorker::InitializeWorker(void)
    mBDCK = (MpResVec *) xmalloc(ii_SubsequenceCount*sizeof(MpResVec));
    mBD = (MpResVec *) xmalloc(ii_BestQ*sizeof(MpResVec));
 
-   for (idx=0; idx<4; idx++)
-      ip_HashTable[idx] = new HashTable(ii_BabySteps);
+   printf("\t(%u, %u) Q:%u -> %u | %u baby + %u giant\n", ii_MaxN, ii_MinN, ii_BestQ, r, ii_BabySteps, ii_GiantSteps);
+
+    for (idx=0; idx<4; idx++)
+       ip_HashTable[idx] = new HashTable(ii_BabySteps);
+   il_HashInserts = 0;
+   il_TotalConflicts = 0;
 }
 
 void  GenericWorker::TestMegaPrimeChunk(void)
@@ -398,6 +402,9 @@ void  GenericWorker::DiscreteLogLargePrimes(uint32_t *b, uint64_t *p)
    SetupDiscreteLog(b, p, mp, mb);
 
    BabySteps(mp, mb, orderOfB);
+   //if (p[0] % 10000000 == 3)
+   //  printf("total_conflicts @ p=%lu: %lu/%lu = %.2f\n",
+   //          p[0], il_TotalConflicts, il_HashInserts, 1.0 * il_TotalConflicts / il_HashInserts);
 
    for (pIdx=0; pIdx<4; pIdx++)
    {
@@ -536,6 +543,7 @@ void  GenericWorker::BabySteps(MpArithVec mp, MpResVec mb, uint32_t *orderOfB)
    const MpResVec mBexpQ = mp.pow(mb, ii_BestQ);
    const MpResVec mBJ = mp.pow(mBexpQ, ii_SieveLow);
 
+   il_HashInserts += 4 * ii_BabySteps;
    for (pIdx=0; pIdx<4; pIdx++)
    {
       ip_HashTable[pIdx]->Clear();
@@ -545,7 +553,7 @@ void  GenericWorker::BabySteps(MpArithVec mp, MpResVec mb, uint32_t *orderOfB)
 
       for (j=0; j<ii_BabySteps; j++)
       {
-         ip_HashTable[pIdx]->Insert(resBJ, j);
+         il_TotalConflicts += ip_HashTable[pIdx]->Insert(resBJ, j);
 
          resBJ = mp.mul(resBJ, mBexpQ, pIdx);
 

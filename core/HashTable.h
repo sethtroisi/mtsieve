@@ -13,7 +13,7 @@
 #define HASH_MASK1         (1<<15)
 #define HASH_MASK2         (HASH_MASK1-1)
 #define HASH_MAX_ELTS      HASH_MASK2-1
-#define HASH_MINIMUM_SHIFT 10
+#define HASH_MINIMUM_SHIFT 11
 
 class HashTable
 {
@@ -35,18 +35,22 @@ public:
 
    inline uint64_t get(uint32_t x) {return BJ64[x]; };
 
-   inline void Insert(uint64_t bj, uint32_t j)
+   inline uint32_t Insert(uint64_t bj, uint32_t j)
    {
       uint32_t slot;
 
       BJ64[j] = bj;
       slot = bj & hsize_minus1;
       if (htable[slot] == empty_slot)
+      {
          htable[slot] = j;
+         return 0;
+      }
       else
       {
          olist[j] = htable[slot];
          htable[slot] = (j | HASH_MASK1);
+         return 1;
       }
    };
 
@@ -59,6 +63,7 @@ public:
       elt = htable[slot];
       elt_low = elt & HASH_MASK2;
 
+      // Adds more branch misses and there's good caching for BJ64.
       //if (elt == empty_slot)
       //   return HASH_NOT_FOUND;
 

@@ -56,6 +56,9 @@ private:
    uint32_t          ii_GiantSteps;
 
    HashTable        *ip_HashTable[4];
+   uint64_t         il_HashInserts;
+   uint64_t         il_TotalConflicts;
+
 
    uint32_t         *ssHash;        // there is one per subsequence
 
