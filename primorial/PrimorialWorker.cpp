@@ -82,10 +82,12 @@ void  PrimorialWorker::TestMegaPrimeChunk(void)
          ri = mp.add(ri, ip_ResGaps[primeGap]);
          rf = mp.mul(rf, ri);
 
+/*
 if (ps[0] == 1000121) printf("%llu %llu\n", ri[0], rf[0]);
 if (ps[1] == 1000121) printf("%llu %llu\n", ri[1], rf[1]);
 if (ps[2] == 1000121) printf("%llu %llu\n", ri[2], rf[2]);
 if (ps[3] == 1000121) printf("%llu %llu\n", ri[3], rf[3]);
+*/
       }
 
       // Primorial and check if primorial# (mod p) = +/-1
@@ -108,10 +110,12 @@ if (ps[3] == 1000121) printf("%llu %llu\n", ri[3], rf[3]);
             }
          }
 
+/*
 if (ps[0] == 1000121) printf("%llu %llu\n", ri[0], rf[0]);
 if (ps[1] == 1000121) printf("%llu %llu\n", ri[1], rf[1]);
 if (ps[2] == 1000121) printf("%llu %llu\n", ri[2], rf[2]);
 if (ps[3] == 1000121) printf("%llu %llu\n", ri[3], rf[3]);
+*/
 
          pIdx++;
       }
