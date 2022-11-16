@@ -20,5 +20,15 @@ To match the old structure I had to do this (you don't have to)
 
 ```
 mv sieve sieve_old
+
+# Old approach that leaves primesieve dirty
 ln -s submodules/primesieve/src/ sieve
 ln -s ../include/primesieve.{h,hpp} submodules/primesieve/src/
+
+# New approach with more symlinks
+mkdir sieve
+cd sieve
+ln -s ../submodules/primesieve/src/*.cpp .
+ln -s ../submodules/primesieve/include/* .
+ln -s ../submodules/primesieve/include/primesieve .
+```
