@@ -20,18 +20,18 @@ class HashTable
 public:
    HashTable(uint32_t elements);
    HashTable(uint32_t babySteps, uint32_t bestQ, uint32_t powerResidueLcm);
-   
+
    ~HashTable(void);
 
    void  Cleanup(void);
-   
+
    inline void Clear(void)
    {
       memset(htable, 0, hsize*sizeof(uint16_t));
    }
-   
+
    inline uint64_t get(uint32_t x) {return BJ64[x]; };
-   
+
    inline void Insert(uint64_t bj, uint32_t j)
    {
       uint32_t slot;
@@ -46,7 +46,7 @@ public:
          htable[slot] = (j | HASH_MASK1);
       }
    };
-   
+
    inline uint32_t Lookup(uint64_t bj)
    {
       uint32_t slot;
@@ -57,7 +57,7 @@ public:
 
       if (BJ64[elt & HASH_MASK2] == bj)
          return elt & HASH_MASK2;
-      
+
       if ((elt & HASH_MASK1) == 0)
          return HASH_NOT_FOUND;
 
@@ -66,7 +66,7 @@ public:
       {
          if (BJ64[olist[elt] & HASH_MASK2] == bj)
             return olist[elt] & HASH_MASK2;
-         
+
          elt = olist[elt];
       } while ((elt & HASH_MASK1) == 0);
 

@@ -23,11 +23,11 @@ public:
 
    void              TestMegaPrimeChunk(void);
    void              TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
-   
+
    void              CleanUp(void);
 
 protected:
-   uint64_t          il_NextTermsBuild;   
+   uint64_t          il_NextTermsBuild;
    uint32_t          ii_MaxGpuSteps;
    uint32_t          ii_MaxGpuFactors;
    uint32_t         *ii_Terms;
@@ -42,7 +42,7 @@ protected:
    int64_t          *il_FactorList;
 
    CullenWoodallApp *ip_CullenWoodallApp;
-   
+
    GpuKernel        *ip_Kernel;
 };
 

@@ -34,25 +34,25 @@ public:
    // but that the GPU will only read.
    virtual void      *AddCpuArgument(const char *name, uint32_t size, uint32_t count) = 0;
    virtual void      *AddCpuArgument(const char *name, uint32_t size, uint32_t count, void *cpuMemory) = 0;
-   
+
    // This adds an argument to the kernel for memory that the GPU will write to
    // but that the CPU will only read.
    virtual void      *AddGpuArgument(const char *name, uint32_t size, uint32_t count) = 0;
-   
+
    // This adds an argument to the kernel for memory that bot the CPU and GPU
    // can read and write.
    virtual void      *AddSharedArgument(const char *name, uint32_t size, uint32_t count) = 0;
 
    // This allows sharing of arguments between kernels.
    virtual void      *AddArgument(const char *name, GpuKernel *other) = 0;
-   
+
    uint32_t   GetWorkGroupSize(void) { return ii_WorkGroupSize; };
 
 protected:
    GpuDevice     *ip_GpuDevice;
 
    std::string    is_KernelName;
-      
+
    uint32_t       ii_WorkGroupSize;
 };
 

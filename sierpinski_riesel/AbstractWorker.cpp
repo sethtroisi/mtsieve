@@ -16,14 +16,14 @@ AbstractWorker::AbstractWorker(uint32_t myId, App *theApp, AbstractSequenceHelpe
 {
    ip_SierpinskiRieselApp = (SierpinskiRieselApp *) theApp;
    ip_AppHelper = appHelper;
-   
+
    ii_Base = ip_SierpinskiRieselApp->GetBase();
    ii_MinN = ip_SierpinskiRieselApp->GetMinN();
    ii_MaxN = ip_SierpinskiRieselApp->GetMaxN();
-   
+
    ip_FirstSequence = 0;
    ii_SequenceCount = 0;
-   
+
    ip_Subsequences = 0;
    ii_SubsequenceCount = 0;
 }

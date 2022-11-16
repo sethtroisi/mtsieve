@@ -33,7 +33,7 @@ private:
    uint64_t          il_NextBaseBuild;
    uint32_t          ii_BaseCount;
    uint32_t         *ip_Bases;
-   
+
    uint64_t          il_K;
 };
 

@@ -19,14 +19,14 @@ GenericWorker::GenericWorker(uint32_t myId, App *theApp, AbstractSequenceHelper 
 {
    ip_FirstSequence = appHelper->GetFirstSequenceAndSequenceCount(ii_SequenceCount);
    ip_Subsequences = appHelper->GetSubsequences(ii_SubsequenceCount);
-   
+
    SierpinskiRieselApp *srApp = (SierpinskiRieselApp *) theApp;
    ib_CanUseCIsOneLogic = srApp->CanUseCIsOneLogic();
    il_MaxK = srApp->GetMaxK();
-   
+
    // Everything we need is done in the constuctor of the parent class
    ib_Initialized = true;
-   
+
    ssHash = NULL;
    mBD = NULL;
    mBDCK = NULL;
@@ -35,10 +35,10 @@ GenericWorker::GenericWorker(uint32_t myId, App *theApp, AbstractSequenceHelper 
 void  GenericWorker::CleanUp(void)
 {
    uint32_t idx;
-   
+
    for (idx=0; idx<4; idx++)
       delete ip_HashTable[idx];
-   
+
    xfree(ssHash);
    xfree(mBD);
    xfree(mBDCK);
@@ -52,26 +52,26 @@ void  GenericWorker::Prepare(uint64_t largestPrimeTested, uint32_t bestQ)
    seq_t     *seqPtr;
 
    ii_BestQ = bestQ;
-   
+
    seqPtr = ip_FirstSequence;
    do
    {
       c = abs(seqPtr->c);
-      
+
       max_k = MAX(max_k, seqPtr->k);
       max_c = MAX(max_c, c);
 
       seqPtr = (seq_t *) seqPtr->next;
    } while (seqPtr != NULL);
-   
+
    InitializeWorker();
-  
+
    il_SmallPrimeSieveLimit = ip_SierpinskiRieselApp->GetSmallSievePrimeLimit();
 }
 
 void  GenericWorker::InitializeWorker(void)
 {
-   uint32_t idx;   
+   uint32_t idx;
    uint32_t r = ii_MaxN/ii_BestQ - ii_MinN/ii_BestQ + 1;
    double babyStepFactor = ip_SierpinskiRieselApp->GetBabyStepFactor();
 
@@ -96,12 +96,12 @@ void  GenericWorker::InitializeWorker(void)
 
    if (ii_SieveLow > ii_MinN/ii_BestQ)
       FatalError("ii_SieveLow was not computed correctly");
-   
+
    if (ii_MaxN/ii_BestQ >= ii_SieveLow+ii_SieveRange)
       FatalError("ii_SieveRange was not computed correctly");
 
    ssHash = (uint32_t *) xmalloc(ii_SubsequenceCount*sizeof(uint32_t *));
-   
+
    mBDCK = (MpResVec *) xmalloc(ii_SubsequenceCount*sizeof(MpResVec));
    mBD = (MpResVec *) xmalloc(ii_BestQ*sizeof(MpResVec));
 
@@ -115,7 +115,7 @@ void  GenericWorker::TestMegaPrimeChunk(void)
    uint64_t lastPrime = 0;
    uint64_t ps[4];
    uint32_t bs[4];
-   
+
    if (il_SmallPrimeSieveLimit > 0 && il_SmallPrimeSieveLimit > il_PrimeList[0])
    {
       lastPrime = ProcessSmallPrimes();
@@ -124,18 +124,18 @@ void  GenericWorker::TestMegaPrimeChunk(void)
       if (il_SmallPrimeSieveLimit <= lastPrime)
       {
          ip_SierpinskiRieselApp->SetRebuildNeeded();
-         
+
          // This will trigger a retest of some primes between il_SmallPrimeSieveLimit and lastPrime
          // using large primes logic.  This should only be a few primes, so no big performance hit.
          SetLargestPrimeTested(il_SmallPrimeSieveLimit, 0);
       }
-      
+
       return;
    }
 
 #if defined(USE_OPENCL) || defined(USE_METAL)
    bool     switchToGPUWorkers = false;
-   
+
    // If this is the scenario where a CPU worker was created (even though CpuWorkerCount = 0)
    // then switching to GPU workers will delete the CPU worker when it is no longer needed.
    if (ip_App->GetCpuWorkerCount() == 0 && ip_App->GetGpuWorkerCount() > 0)
@@ -156,11 +156,11 @@ void  GenericWorker::TestMegaPrimeChunk(void)
       ps[1] = il_PrimeList[pIdx+1];
       ps[2] = il_PrimeList[pIdx+2];
       ps[3] = il_PrimeList[pIdx+3];
-         
+
       DiscreteLogLargePrimes(bs, ps);
-      
+
       SetLargestPrimeTested(ps[3], 4);
-      
+
       if (ps[3] >= maxPrime)
       {
 #if defined(USE_OPENCL) || defined(USE_METAL)
@@ -172,7 +172,7 @@ void  GenericWorker::TestMegaPrimeChunk(void)
             ip_SierpinskiRieselApp->SetRebuildNeeded();
          }
 #endif
-         
+
          return;
       }
    }
@@ -191,27 +191,27 @@ uint64_t  GenericWorker::ProcessSmallPrimes(void)
    uint64_t thePrime, lastPrime = 0;
    uint32_t primeCount = 0;
    uint32_t actualCount = 0;
-      
+
    for (uint32_t pIdx=0; pIdx<ii_PrimesInList; pIdx++)
    {
       lastPrime = thePrime = il_PrimeList[pIdx];
-      
+
       if (ii_Base % thePrime  == 0)
          continue;
 
       ps[primeCount] = thePrime;
       bs[primeCount] = (ii_Base % thePrime);
-      
+
       primeCount++;
-      
+
       if (primeCount == 4)
-      {   
+      {
          DiscreteLogSmallPrimes(bs, ps);
-         
+
          SetLargestPrimeTested(ps[3], 4);
-         
+
          primeCount = 0;
-         
+
          if (ps[3] >= maxPrime)
             return lastPrime;
       }
@@ -219,9 +219,9 @@ uint64_t  GenericWorker::ProcessSmallPrimes(void)
 
    if (primeCount == 0)
       return lastPrime;
-   
+
    actualCount = primeCount;
-   
+
    while (primeCount < 4)
    {
       ps[primeCount] = ps[primeCount-1];
@@ -229,11 +229,11 @@ uint64_t  GenericWorker::ProcessSmallPrimes(void)
 
       primeCount++;
    }
-      
+
    DiscreteLogSmallPrimes(bs, ps);
-   
+
    SetLargestPrimeTested(ps[3], actualCount);
-   
+
    return lastPrime;
 }
 
@@ -245,59 +245,59 @@ void  GenericWorker::DiscreteLogSmallPrimes(uint32_t *b, uint64_t *p)
    uint32_t solutionCount;
    uint32_t firstSolution;
    uint32_t verifiedFactors;
-   
+
    MpArithVec mp(p);
    MpResVec mb = mp.nToRes(b);
-   
+
    SetupDiscreteLog(b, p, mp, mb);
-   
+
    BabySteps(mp, mb, orderOfB);
-   
+
    // b <- 1/b^m (mod p)
    if (ii_GiantSteps > 1)
       mBM = mp.pow(mBM, ii_BabySteps);
 
    for (pIdx=0; pIdx<4; pIdx++)
-   {      
+   {
       solutionCount = 0;
       firstSolution = HASH_NOT_FOUND;
-      
+
       for (i=0; i<ii_SubsequenceCount; i++)
          ssHash[i] = HASH_NOT_FOUND;
-            
+
       if (orderOfB[pIdx] > 0)
-      {         
+      {
          for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
          {
             j = ip_HashTable[pIdx]->Lookup(mBDCK[ssIdx][pIdx]);
 
             verifiedFactors = 0;
-            
+
             while (j < ii_SieveRange)
             {
                verifiedFactors++;
-               
+
                // If the first few are valid, then assume that the rest are valid.  This will
                // speed up testing of small primes.
                ip_SierpinskiRieselApp->ReportFactor(p[pIdx], SEQ_PTR(ssIdx), N_TERM(ssIdx, j), (verifiedFactors < 5));
-               
+
                j += orderOfB[pIdx];
             }
          }
-         
+
          continue;
       }
-      
+
       // First giant step
       for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
       {
          j = ip_HashTable[pIdx]->Lookup(mBDCK[ssIdx][pIdx]);
-         
+
          if (j != HASH_NOT_FOUND)
          {
             solutionCount++;
             ssHash[ssIdx] = j;
-            
+
             if (solutionCount == 1)
                firstSolution = ssIdx;
          }
@@ -315,11 +315,11 @@ void  GenericWorker::DiscreteLogSmallPrimes(uint32_t *b, uint64_t *p)
                   mBDCK[ssIdx][pIdx] = mp.mul(mBDCK[ssIdx], mBM, pIdx);
 
                   j = ip_HashTable[pIdx]->Lookup(mBDCK[ssIdx][pIdx]);
-            
+
                   if (j != HASH_NOT_FOUND)
                   {
                      solutionCount++;
-                     
+
                      if (firstSolution == ssIdx) /* repeat solution */
                      {
                         orderOfB[pIdx] = i*ii_BabySteps+j - ssHash[ssIdx];
@@ -328,7 +328,7 @@ void  GenericWorker::DiscreteLogSmallPrimes(uint32_t *b, uint64_t *p)
                      else
                      {
                         ssHash[ssIdx] = i*ii_BabySteps+j;
-                        
+
                         if (solutionCount == 1) /* first solution */
                            firstSolution = ssIdx;
                      }
@@ -337,7 +337,7 @@ void  GenericWorker::DiscreteLogSmallPrimes(uint32_t *b, uint64_t *p)
             }
          }
       }
-   
+
       if (orderOfB[pIdx] > 0)
       {
          for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
@@ -345,40 +345,40 @@ void  GenericWorker::DiscreteLogSmallPrimes(uint32_t *b, uint64_t *p)
             j = ssHash[ssIdx];
 
             verifiedFactors = 0;
-            
+
             while (j < ii_SieveRange)
             {
                verifiedFactors++;
-               
+
                // If the first few are valid, then assume that the rest are valid.  This will
                // speed up testing of small primes.
                ip_SierpinskiRieselApp->ReportFactor(p[pIdx], SEQ_PTR(ssIdx), N_TERM(ssIdx, j), (verifiedFactors < 5));
-               
+
                j += orderOfB[pIdx];
             }
          }
-      
+
          continue;
       }
-      
+
       for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
       {
          j = ssHash[ssIdx];
-         
+
          if (j != HASH_NOT_FOUND)
          {
             uint32_t nTerm = N_TERM(ssIdx, j);
-            
+
             verifiedFactors = 0;
-            
+
             while (nTerm <= ii_MaxN)
             {
                verifiedFactors++;
-               
+
                // If the first few are valid, then assume that the rest are valid.  This will
                // speed up testing of small primes.
                ip_SierpinskiRieselApp->ReportFactor(p[pIdx], SEQ_PTR(ssIdx), nTerm, (verifiedFactors < 5));
-               
+
                nTerm += (p[pIdx] - 1);
             }
          }
@@ -391,12 +391,12 @@ void  GenericWorker::DiscreteLogLargePrimes(uint32_t *b, uint64_t *p)
    uint32_t i, j, ssIdx;
    uint32_t pIdx;
    uint32_t orderOfB[4];
-   
+
    MpArithVec mp(p);
    MpResVec mb = mp.nToRes(b);
-   
+
    SetupDiscreteLog(b, p, mp, mb);
-      
+
    BabySteps(mp, mb, orderOfB);
 
    for (pIdx=0; pIdx<4; pIdx++)
@@ -406,15 +406,15 @@ void  GenericWorker::DiscreteLogLargePrimes(uint32_t *b, uint64_t *p)
          for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
          {
             j = ip_HashTable[pIdx]->Lookup(mBDCK[ssIdx][pIdx]);
-            
+
             while (j < ii_SieveRange)
             {
                ip_SierpinskiRieselApp->ReportFactor(p[pIdx], SEQ_PTR(ssIdx), N_TERM(ssIdx, j), true);
-               
+
                j += orderOfB[pIdx];
             }
          }
-         
+
          continue;
       }
 
@@ -422,18 +422,18 @@ void  GenericWorker::DiscreteLogLargePrimes(uint32_t *b, uint64_t *p)
       for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
       {
          j = ip_HashTable[pIdx]->Lookup(mBDCK[ssIdx][pIdx]);
-         
+
          if (j != HASH_NOT_FOUND)
             ip_SierpinskiRieselApp->ReportFactor(p[pIdx], SEQ_PTR(ssIdx), N_TERM(ssIdx, j), true);
       }
    }
-   
+
    if (ii_GiantSteps < 2)
       return;
 
    // b <- 1/b^m (mod p)
    mBM = mp.pow(mBM, ii_BabySteps);
-   
+
    for (i=1; i<ii_GiantSteps; i++)
    {
       for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
@@ -484,14 +484,14 @@ void  GenericWorker::SetupDiscreteLog(uint32_t *b, uint64_t *p, MpArithVec mp, M
    MpResVec mI = mp.nToRes(imod);
    mBM = mI;
    mBD[0] = mp.one();
-     
+
    for (qIdx=1; qIdx<ii_BestQ; qIdx++)
    {
       mBD[qIdx] = mBM;
-      
+
       mBM = mp.mul(mBM, mI);
    }
-   
+
    seqPtr = ip_FirstSequence;
    do
    {
@@ -499,17 +499,17 @@ void  GenericWorker::SetupDiscreteLog(uint32_t *b, uint64_t *p, MpArithVec mp, M
       temp[1] = lmod64(-seqPtr->c, p[1]);
       temp[2] = lmod64(-seqPtr->c, p[2]);
       temp[3] = lmod64(-seqPtr->c, p[3]);
-      
+
       umod[0] = umod64(seqPtr->k, p[0]);
       umod[1] = umod64(seqPtr->k, p[1]);
       umod[2] = umod64(seqPtr->k, p[2]);
       umod[3] = umod64(seqPtr->k, p[3]);
-      
+
       imod[0] = invmod64(umod[0], p[0]);
       imod[1] = invmod64(umod[1], p[1]);
       imod[2] = invmod64(umod[2], p[2]);
       imod[3] = invmod64(umod[3], p[3]);
-      
+
       MpResVec mTemp = mp.nToRes(temp);
       mI = mp.nToRes(imod);
 
@@ -532,23 +532,23 @@ void  GenericWorker::BabySteps(MpArithVec mp, MpResVec mb, uint32_t *orderOfB)
 {
    uint32_t j, pIdx;
    uint64_t resBJ;
-   
+
    const MpResVec mBexpQ = mp.pow(mb, ii_BestQ);
    const MpResVec mBJ = mp.pow(mBexpQ, ii_SieveLow);
-      
+
    for (pIdx=0; pIdx<4; pIdx++)
    {
       ip_HashTable[pIdx]->Clear();
-      
+
       orderOfB[pIdx] = 0;
       resBJ = mBJ[pIdx];
-            
+
       for (j=0; j<ii_BabySteps; j++)
       {
          ip_HashTable[pIdx]->Insert(resBJ, j);
-         
+
          resBJ = mp.mul(resBJ, mBexpQ, pIdx);
-         
+
          if (resBJ == mBJ[pIdx])
          {
             orderOfB[pIdx] = j + 1;

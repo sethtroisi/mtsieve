@@ -69,11 +69,11 @@ parse_t CarolKyneaApp::ParseOption(int opt, char *arg, const char *source)
       case 'b':
          status = Parser::Parse(arg, 2, 1000000000, ii_Base);
          break;
-         
+
       case 'n':
          status = Parser::Parse(arg, 1, 1000000000, ii_MinN);
          break;
-         
+
       case 'N':
          status = Parser::Parse(arg, 2, 1000000000, ii_MaxN);
          break;
@@ -83,14 +83,14 @@ parse_t CarolKyneaApp::ParseOption(int opt, char *arg, const char *source)
 }
 
 void CarolKyneaApp::ValidateOptions(void)
-{ 
+{
    if (is_InputTermsFileName.length() > 0)
    {
       ProcessInputTermsFile(false);
-      
+
       iv_MinusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_MinusTerms.begin(), iv_MinusTerms.end(), false);
-      
+
       iv_PlusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_PlusTerms.begin(), iv_PlusTerms.end(), false);
 
@@ -98,19 +98,19 @@ void CarolKyneaApp::ValidateOptions(void)
       ProcessInputTermsFile(true);
    }
    else
-   {     
+   {
       if (ii_Base == 0)
          FatalError("Base is required");
-         
+
       if (ii_MaxN <= ii_MinN)
          FatalError("The value for -N must be greater than the value for -n");
 
       iv_MinusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_MinusTerms.begin(), iv_MinusTerms.end(), true);
-      
+
       iv_PlusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_PlusTerms.begin(), iv_PlusTerms.end(), true);
-      
+
       il_TermCount = 2 * (ii_MaxN - ii_MinN + 1);
 
       // (2^1+1)-2 =  1, so remove that term
@@ -119,7 +119,7 @@ void CarolKyneaApp::ValidateOptions(void)
          iv_PlusTerms[BIT(1)] = false;
          il_TermCount--;
       }
-      
+
       // (2^1-1)-2 = -1, so remove that term
       // (3^1-1)-2 = -0, so remove that term
       // (4^1-1)-2 =  1, so remove that term
@@ -133,9 +133,9 @@ void CarolKyneaApp::ValidateOptions(void)
    if (is_OutputTermsFileName.length() == 0)
    {
       char fileName[50];
-      
+
       sprintf(fileName, "ck_%u.pfgw", ii_Base);
-      
+
       is_OutputTermsFileName = fileName;
    }
 
@@ -166,7 +166,7 @@ void CarolKyneaApp::ProcessInputTermsFile(bool haveBitMap)
 
    if (fgets(buffer, sizeof(buffer), fPtr) == NULL)
       FatalError("No data in input file %s", is_InputTermsFileName.c_str());
-   
+
    if (sscanf(buffer, "ABC (%u^$a$b)^2-2", &ii_Base) != 1)
       FatalError("Line 1 is not a valid ABC line in input file %s", is_InputTermsFileName.c_str());
 
@@ -177,12 +177,12 @@ void CarolKyneaApp::ProcessInputTermsFile(bool haveBitMap)
 
    if (!haveBitMap)
       ii_MinN = ii_MaxN = 0;
-   
+
    while (fgets(buffer, sizeof(buffer), fPtr) != NULL)
    {
       if (!StripCRLF(buffer))
          continue;
-   
+
       if (sscanf(buffer, "%u %d", &n, &c) != 2)
          FatalError("Line %s is malformed", buffer);
 
@@ -196,7 +196,7 @@ void CarolKyneaApp::ProcessInputTermsFile(bool haveBitMap)
             iv_PlusTerms[BIT(n)] = true;
             il_TermCount++;
          }
-         
+
          if (c == -1)
          {
             iv_MinusTerms[BIT(n)] = true;
@@ -217,24 +217,24 @@ bool CarolKyneaApp::ApplyFactor(uint64_t theFactor, const char *term)
 {
    uint32_t b, n;
    int32_t  c;
-      
+
    if (sscanf(term, "(%u^%u%d)^2-2", &b, &n, &c) != 3)
       FatalError("Could not parse term %s", term);
 
    if (b != ii_Base)
       FatalError("Expected base %u in factor but found base %u", ii_Base, b);
-     
+
    if (c != +1 && c != -1)
       FatalError("Expected c to be +1 or -1 in factor but found %d", c);
-        
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
 
    uint32_t bit = BIT(n);
-   
+
    // No locking is needed because the Workers aren't running yet
    if (c == +1 && iv_MinusTerms[bit])
-   {	
+   {
       iv_MinusTerms[bit] = false;
       il_TermCount--;
 
@@ -242,7 +242,7 @@ bool CarolKyneaApp::ApplyFactor(uint64_t theFactor, const char *term)
    }
 
    if (c == +1 && iv_PlusTerms[bit])
-   {	
+   {
       iv_PlusTerms[bit] = false;
       il_TermCount--;
 
@@ -256,24 +256,24 @@ void CarolKyneaApp::WriteOutputTermsFile(uint64_t largestPrime)
 {
    uint64_t termsCounted = 0;
    uint32_t n;
-   
+
    FILE    *termsFile = fopen(is_OutputTermsFileName.c_str(), "w");
 
    if (!termsFile)
       FatalError("Unable to open input file %s", is_OutputTermsFileName.c_str());
-   
+
    ip_FactorAppLock->Lock();
-   
+
    fprintf(termsFile, "ABC (%u^$a$b)^2-2 // Sieved to %" PRIu64"\n", ii_Base, largestPrime);
 
    for (n=ii_MinN; n<=ii_MaxN; n++)
-   {         
+   {
       if (iv_PlusTerms[n-ii_MinN])
       {
          fprintf(termsFile, "%u +1\n", n);
          termsCounted++;
       }
-      
+
       if (iv_MinusTerms[n-ii_MinN])
       {
          fprintf(termsFile, "%u -1\n", n);
@@ -282,7 +282,7 @@ void CarolKyneaApp::WriteOutputTermsFile(uint64_t largestPrime)
    }
 
    fclose(termsFile);
-   
+
    if (termsCounted != il_TermCount)
       FatalError("Something is wrong.  Counted terms (%" PRIu64") != expected terms (%" PRIu64")", termsCounted, il_TermCount);
 
@@ -298,74 +298,74 @@ bool CarolKyneaApp::ReportFactor(uint64_t theFactor, uint32_t n, int32_t c)
 {
    uint32_t bit;
    bool     removedTerm = false;
-   
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-      
+
    ip_FactorAppLock->Lock();
 
    bit = BIT(n);
-   
+
    if (c == -1 && iv_MinusTerms[bit])
-   {	
+   {
       iv_MinusTerms[bit] = false;
       removedTerm = true;
-      
+
       il_TermCount--;
       il_FactorCount++;
-      
+
       LogFactor(theFactor, "(%u^%u-1)^2-2", ii_Base, n);
    }
 
    if (c == +1 && iv_PlusTerms[bit])
-   {	
+   {
       iv_PlusTerms[bit] = false;
       removedTerm = true;
-      
+
       il_TermCount--;
       il_FactorCount++;
-      
+
       LogFactor(theFactor, "(%u^%u+1)^2-2", ii_Base, n);
    }
-   
+
    ip_FactorAppLock->Release();
-   
-   return removedTerm;   
+
+   return removedTerm;
 }
 
 
 void CarolKyneaApp::ReportPrime(uint64_t thePrime, uint32_t n, int32_t c)
-{   
+{
    if (n < ii_MinN || n > ii_MaxN)
       return;
 
    ip_FactorAppLock->Lock();
-   
+
    uint32_t bit = BIT(n);
-   
+
    if (c == -1 && iv_MinusTerms[bit])
-   {	
+   {
       iv_MinusTerms[bit] = false;
-      
+
       il_TermCount--;
       il_FactorCount++;
-      
+
       WriteToConsole(COT_OTHER, "(%u^%u-1)^2-2 is prime! (%" PRIu64")", ii_Base, n, thePrime);
 
       WriteToLog("(%u^%u-1)^2-2 is prime! (%" PRIu64")", ii_Base, n, thePrime);
    }
 
    if (c == +1 && iv_PlusTerms[bit])
-   {	
+   {
       iv_PlusTerms[bit] = false;
-      
+
       il_TermCount--;
       il_FactorCount++;
-      
+
       WriteToConsole(COT_OTHER, "(%u^%u+1)^2-2 is prime! (%" PRIu64")", ii_Base, n, thePrime);
 
       WriteToLog("(%u^%u+1)^2-2 is prime! (%" PRIu64")", ii_Base, n, thePrime);
    }
-   
+
    ip_FactorAppLock->Release();
 }

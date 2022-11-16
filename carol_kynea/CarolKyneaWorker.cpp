@@ -14,7 +14,7 @@
 CarolKyneaWorker::CarolKyneaWorker(uint32_t myId, App *theApp) : Worker(myId, theApp)
 {
    ip_CarolKyneaApp = (CarolKyneaApp *) theApp;
-   
+
    ii_Base = ip_CarolKyneaApp->GetBase();
    ii_MinN = ip_CarolKyneaApp->GetMinN();
    ii_MaxN = ip_CarolKyneaApp->GetMaxN();
@@ -27,7 +27,7 @@ CarolKyneaWorker::CarolKyneaWorker(uint32_t myId, App *theApp) : Worker(myId, th
    // and how early in the loop they are found, which I don't know how
    // to analyse. However for the worst case we just want to minimise
    // m + s*M subject to m*M >= r, which is when m = sqrt(s*r).
-  
+
    ii_GiantSteps = MAX(1, sqrt((double) r/ROOT_COUNT));
    ii_BabySteps = MIN(r, ceil((double) r/ii_GiantSteps));
 
@@ -39,12 +39,12 @@ CarolKyneaWorker::CarolKyneaWorker(uint32_t myId, App *theApp) : Worker(myId, th
 
    ii_SieveLow = ip_CarolKyneaApp->GetMinN();
    ii_SieveRange = ii_BabySteps*ii_GiantSteps;
-   
+
    assert(ii_SieveLow <= ip_CarolKyneaApp->GetMinN());
    assert(ip_CarolKyneaApp->GetMaxN() < ii_SieveLow+ii_SieveRange);
-   
+
    ip_HashTable = new HashTable(ii_BabySteps);
-   
+
    // The thread can't start until initialization is done
    ib_Initialized = true;
 }
@@ -62,14 +62,14 @@ void  CarolKyneaWorker::TestMegaPrimeChunk(void)
    for (uint32_t pIdx=0; pIdx<ii_PrimesInList; pIdx++)
    {
       thePrime = il_PrimeList[pIdx+0];
-      
+
       if (ii_Base % thePrime == 0)
          continue;
-      
+
       // Skip this prime if there are no values x such that x^2 = 2 (mod p)
       if (!IsQuadraticResidue(2, thePrime))
          continue;
-   
+
       fpu_push_1divp(thePrime);
 
       // Find root of x^2 = 2 (mod p)
@@ -78,12 +78,12 @@ void  CarolKyneaWorker::TestMegaPrimeChunk(void)
       root2 = thePrime - root1;
 
       // It is possible that findRoot returns where x^2 = -2 (mod p)
-      if (fpu_mulmod(root1, root1, thePrime) != 2)         
+      if (fpu_mulmod(root1, root1, thePrime) != 2)
          ip_CarolKyneaApp->WriteToConsole(COT_SIEVE, "%" PRIu64" is not a root (mod %" PRIu64")", root1, thePrime);
-      
-      if (fpu_mulmod(root2, root2, thePrime) != 2) 
+
+      if (fpu_mulmod(root2, root2, thePrime) != 2)
          ip_CarolKyneaApp->WriteToConsole(COT_SIEVE, "%" PRIu64" is not a root (mod %" PRIu64")", root2, thePrime);
-    
+
       io_Sequence[0].root = root1 - 1;
       io_Sequence[0].c    = +1;
       io_Sequence[1].root = root2 - 1;
@@ -92,13 +92,13 @@ void  CarolKyneaWorker::TestMegaPrimeChunk(void)
       io_Sequence[2].c    = -1;
       io_Sequence[3].root = root2 + 1;
       io_Sequence[3].c    = -1;
-         
+
       DiscreteLog(thePrime);
-      
+
       fpu_pop();
 
       SetLargestPrimeTested(thePrime, 1);
-      
+
       if (thePrime >= maxPrime)
          break;
    }
@@ -116,12 +116,12 @@ void  CarolKyneaWorker::DiscreteLog(uint64_t p)
    uint64_t  inv_pb;
 
    b = ii_Base % p;
-   
+
    ip_HashTable->Clear();
-   
+
    // Precompute 1/b^d (mod p) for 0 <= d <= Q.
    inv_pb = InvMod32(b, p);
-   
+
    if (inv_pb == 0)
       return;
 
@@ -130,9 +130,9 @@ void  CarolKyneaWorker::DiscreteLog(uint64_t p)
 
    b = ii_Base;
    bj0 = fpu_powmod(b, ii_MinN, p);
-   
+
    i = BabySteps(b, bj0, p);
-   
+
    if (i > 0)
    {
       // i is the order of b (mod p). This is all the information we need to
@@ -140,10 +140,10 @@ void  CarolKyneaWorker::DiscreteLog(uint64_t p)
       for (k = 0; k < ROOT_COUNT; k++)
          for (j = ip_HashTable->Lookup(il_A[k]); j < ii_SieveRange; j += i)
             CheckFactor(p, ii_SieveLow+j, io_Sequence[k].c);
-         
+
       return;
    }
-   
+
    // First giant step
    for (k = 0; k < ROOT_COUNT; k++)
       if ((j = ip_HashTable->Lookup(il_A[k])) != HASH_NOT_FOUND)
@@ -153,20 +153,20 @@ void  CarolKyneaWorker::DiscreteLog(uint64_t p)
    b = fpu_powmod(inv_pb, ii_BabySteps, p); /* b <- 1/b^m (mod p) */
 
    fpu_push_adivb(b, p);
-         
+
    for (i = 1; i < ii_GiantSteps; i++)
    {
       fpu_mulmod_iter_4a(il_A, b, p);
 
       if ((j = ip_HashTable->Lookup(il_A[0])) != HASH_NOT_FOUND)
          CheckFactor(p, ii_SieveLow+i*ii_BabySteps+j, io_Sequence[0].c);
-         
+
       if ((j = ip_HashTable->Lookup(il_A[1])) != HASH_NOT_FOUND)
          CheckFactor(p, ii_SieveLow+i*ii_BabySteps+j, io_Sequence[1].c);
-      
+
       if ((j = ip_HashTable->Lookup(il_A[2])) != HASH_NOT_FOUND)
          CheckFactor(p, ii_SieveLow+i*ii_BabySteps+j, io_Sequence[2].c);
-      
+
       if ((j = ip_HashTable->Lookup(il_A[3])) != HASH_NOT_FOUND)
          CheckFactor(p, ii_SieveLow+i*ii_BabySteps+j, io_Sequence[3].c);
    }
@@ -178,15 +178,15 @@ uint32_t  CarolKyneaWorker::BabySteps(uint64_t b, uint64_t bj0, uint64_t p)
 {
    uint64_t bj;
    uint32_t j;
-   
+
    fpu_push_adivb(b, p);
-  
+
    for (j = 0, bj = bj0; j < ii_BabySteps; j++)
    {
       ip_HashTable->Insert(bj, j);
-      
+
       bj = fpu_mulmod_iter(bj, b, p);
-            
+
       if (bj == bj0)
       {
          fpu_pop();
@@ -234,7 +234,7 @@ uint64_t	CarolKyneaWorker::FindRoot(uint64_t p)
 
 		rem = fpu_mulmod(rem, A, p);
 		rem = fpu_powmod(rem, 1 << (s - 1 - i), p);
-		
+
 		if (rem == p - 1)
 			m += (1 << i);
 	}
@@ -245,7 +245,7 @@ uint64_t	CarolKyneaWorker::FindRoot(uint64_t p)
 		rem = fpu_powmod(D, m >> 1, p);
 
 	i = fpu_powmod(2, (t+1) >> 1, p);
-   
+
 	return fpu_mulmod(rem, i, p);
 }
 
@@ -257,15 +257,15 @@ void CarolKyneaWorker::CheckFactor(uint64_t p, uint32_t n, int32_t c)
       uint64_t maxBeforeOverflow = (1 << 31);
       uint32_t i = 0;
       bool isFactor = false;
-      
+
       do
       {
          term *= ii_Base;
          i++;
-         
+
          if (term + c > maxBeforeOverflow)
             isFactor = true;
-         
+
          if (((term + c) * (term + c)) > p + 2)
             isFactor = true;
       } while (i < n && !isFactor);
@@ -276,7 +276,7 @@ void CarolKyneaWorker::CheckFactor(uint64_t p, uint32_t n, int32_t c)
          return;
       }
    }
-   
+
    if (ip_CarolKyneaApp->ReportFactor(p, n, c))
       VerifyFactor(p, n, c);
 }
@@ -284,15 +284,15 @@ void CarolKyneaWorker::CheckFactor(uint64_t p, uint32_t n, int32_t c)
 void CarolKyneaWorker::VerifyFactor(uint64_t p, uint32_t n, int32_t c)
 {
    uint64_t rem;
-   
+
    fpu_push_1divp(p);
-   
+
    rem = fpu_powmod(ii_Base, n, p);
-   
+
    rem = fpu_mulmod(rem + c, rem + c, p);
-   
+
    fpu_pop();
-   
+
    if (rem != 2)
       FatalError("(%u^%u%+d)-2 mod %" PRIu64" = %" PRIu64"", ii_Base, n, c, p, rem-2);
 }

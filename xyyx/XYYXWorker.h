@@ -26,16 +26,16 @@ public:
    void           TestMegaPrimeChunk(void);
    void           TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
    void           CleanUp(void);
-   
-private:         
+
+private:
    void           FreeTerms(void);
-   
-   void           TestPrimeChunkFPU(uint64_t &largestPrimeTested, uint64_t &primesTested);   
+
+   void           TestPrimeChunkFPU(uint64_t &largestPrimeTested, uint64_t &primesTested);
    void           BuildFpuXYRemainders(uint64_t *ps);
    void           CheckFpuXYRemainders(uint64_t *ps);
    void           BuildFpuListOfPowers(uint32_t base, uint64_t *ps, uint32_t count);
    void           CheckFpuResult(uint32_t x, uint32_t y, uint64_t *ps, uint64_t *powerOfX, uint64_t *powesOfY);
-   
+
    void           TestPrimeChunkAVX(uint64_t &largestPrimeTested, uint64_t &primesTested);
    void           BuildAvxXYRemainders(uint64_t *ps, double *dps, double *reciprocals);
    void           CheckAvxXYRemainders(uint64_t *ps, double *dps, double *reciprocals);
@@ -59,9 +59,9 @@ private:
 
    base_t        *ip_xyTerms;
    base_t        *ip_yxTerms;
-   
+
    uint64_t      *ip_FpuPowers[MAX_POWERS+1];
-   
+
    double        *ip_AvxPowers[MAX_POWERS+1];
 };
 

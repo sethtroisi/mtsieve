@@ -12,7 +12,7 @@
 #include "../core/App.h"
 #include "../core/Clock.h"
 
-OpenCLKernel::OpenCLKernel(GpuDevice *device, const char *kernelName, const char *kernelSource, const char *preOpenCLKernelSources[]) 
+OpenCLKernel::OpenCLKernel(GpuDevice *device, const char *kernelName, const char *kernelSource, const char *preOpenCLKernelSources[])
    : GpuKernel(device, kernelName, kernelSource, preOpenCLKernelSources)
 {
    cl_int    status;
@@ -35,9 +35,9 @@ OpenCLKernel::OpenCLKernel(GpuDevice *device, const char *kernelName, const char
    sources[0] = tempSource;
    sources[1] = kernelSource;
    sources[2] = NULL;
-   
+
    sprintf(tempSource, "#define USE_OPENCL\n");
-   
+
    if (preOpenCLKernelSources != NULL)
    {
       ii = 0;
@@ -54,11 +54,11 @@ OpenCLKernel::OpenCLKernel(GpuDevice *device, const char *kernelName, const char
    sourcesSize[2] = 0;
 
    ip_OpenCLDevice = (OpenCLDevice *) device;
-   
+
    ip_KernelArguments = (ka_t *) xmalloc(sizeof(ka_t) * MAX_KERNEL_ARGUMENTS);
    is_KernelName = kernelName;
    ii_ArgumentCount = 0;
- 
+
     // Create an OpenCL command queue
 #ifdef __APPLE__
    const cl_queue_properties_APPLE queue_properties = 0;
@@ -85,10 +85,10 @@ OpenCLKernel::OpenCLKernel(GpuDevice *device, const char *kernelName, const char
 
    status = clGetDeviceInfo(ip_OpenCLDevice->GetDeviceId(), CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(deviceGlobalMemorySize), &deviceGlobalMemorySize, NULL);
    OpenCLErrorChecker::ExitIfError("clGetDeviceInfo", status, "Unable to get CL_DEVICE_GLOBAL_MEM_SIZE of device");
-   
+
    status = clGetDeviceInfo(ip_OpenCLDevice->GetDeviceId(), CL_DEVICE_LOCAL_MEM_SIZE, sizeof(deviceLocalMemorySize), &deviceLocalMemorySize, NULL);
    OpenCLErrorChecker::ExitIfError("clGetDeviceInfo", status, "Unable to get CL_DEVICE_LOCAL_MEM_SIZE of device");
-      
+
    // get a kernel object handle for a kernel with the given name
    im_OpenCLKernel = clCreateKernel(im_Program, kernelName, &status);
    OpenCLErrorChecker::ExitIfError("clCreateOpenCLKernel", status, "kernelName: %s", kernelName);
@@ -96,25 +96,25 @@ OpenCLKernel::OpenCLKernel(GpuDevice *device, const char *kernelName, const char
    status = clGetKernelWorkGroupInfo(im_OpenCLKernel, ip_OpenCLDevice->GetDeviceId(), CL_KERNEL_WORK_GROUP_SIZE,
                                      sizeof(ii_KernelWorkGroupSize), &ii_KernelWorkGroupSize, NULL);
    OpenCLErrorChecker::ExitIfError("clGetKernelWorkGroupInfo", status, "kernelName: %s  argument CL_KERNEL_WORK_GROUP_SIZE", kernelName);
-    
+
    status = clGetKernelWorkGroupInfo(im_OpenCLKernel, ip_OpenCLDevice->GetDeviceId(), CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
                                      sizeof(workGroupSizeMultiple), &workGroupSizeMultiple, NULL);
    OpenCLErrorChecker::ExitIfError("clGetKernelWorkGroupInfo", status, "kernelName: %s  argument CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE", kernelName);
-   
+
    status = clGetKernelWorkGroupInfo(im_OpenCLKernel, ip_OpenCLDevice->GetDeviceId(), CL_KERNEL_LOCAL_MEM_SIZE,
                                      sizeof(privateMemorySize), &localMemorySize, NULL);
    OpenCLErrorChecker::ExitIfError("clGetKernelWorkGroupInfo", status, "kernelName: %s  argument CL_KERNEL_LOCAL_MEM_SIZE", kernelName);
-   
+
    status = clGetKernelWorkGroupInfo(im_OpenCLKernel, ip_OpenCLDevice->GetDeviceId(), CL_KERNEL_PRIVATE_MEM_SIZE,
                                      sizeof(privateMemorySize), &privateMemorySize, NULL);
    OpenCLErrorChecker::ExitIfError("clGetKernelWorkGroupInfo", status, "kernelName: %s  argument CL_KERNEL_PRIVATE_MEM_SIZE", kernelName);
-   
+
    ii_DeviceGlobalMemorySize = deviceGlobalMemorySize;
    ii_DeviceLocalMemorySize = deviceLocalMemorySize;
    ii_LocalMemorySize = localMemorySize;
    ii_PrivateMemorySize = privateMemorySize;
    ii_WorkGroupSizeMultiple = workGroupSizeMultiple;
-      
+
    computeUnits = ip_OpenCLDevice->GetMaxComputeUnits();
 
    ii_WorkGroupSize = computeUnits * ii_KernelWorkGroupSize;
@@ -124,7 +124,7 @@ OpenCLKernel::~OpenCLKernel(void)
 {
    ka_t      *ka;
    uint32_t   aa;
-   
+
    clReleaseKernel(im_OpenCLKernel);
    clReleaseProgram(im_Program);
    clReleaseCommandQueue(im_CommandQueue);
@@ -132,14 +132,14 @@ OpenCLKernel::~OpenCLKernel(void)
    for (aa=0; aa<ii_ArgumentCount; aa++)
    {
       ka = &ip_KernelArguments[aa];
-      
+
       if (ka->mustFreeGpuBuffer)
          clReleaseMemObject(ka->gpuBuffer);
-      
+
       if (ka->mustFreeCpuBuffer)
          xfree(ka->cpuBuffer);
    }
-   
+
    xfree(ip_KernelArguments);
 }
 
@@ -166,40 +166,40 @@ void  *OpenCLKernel::AddSharedArgument(const char *name, uint32_t size, uint32_t
 void  *OpenCLKernel::AddArgument(const char *name, GpuKernel *other)
 {
    OpenCLKernel *kernel = (OpenCLKernel *) other;
-   
+
    ka_t      *ka = &ip_KernelArguments[ii_ArgumentCount];
    ka_t      *otherKa = kernel->GetKernelArgument(name);
-   
+
    ii_ArgumentCount++;
-   
+
    strcpy(ka->name, otherKa->name);
-   
+
    ka->size = otherKa->size;
    ka->count = otherKa->count;
    ka->bytes = otherKa->bytes;
    ka->memFlags = otherKa->memFlags;
-   
+
    memcpy(&ka->gpuBuffer, &otherKa->gpuBuffer, sizeof(otherKa->gpuBuffer));
    ka->cpuBuffer = otherKa->cpuBuffer;
-   
+
    ka->mustFreeGpuBuffer = false;
    ka->mustFreeCpuBuffer = false;
-  
+
    return ka->cpuBuffer;
 }
 
 ka_t  *OpenCLKernel::GetKernelArgument(const char *name)
 {
    ka_t      *ka;
-   
+
    for (uint32_t idx=0; idx<ii_ArgumentCount; idx++)
    {
       ka = &ip_KernelArguments[idx];
-      
+
       if (!strcmp(ka->name, name))
          return ka;
    }
-   
+
    FatalError("Could not find KernelArgument with the name %s", name);
    return NULL;
 }
@@ -208,7 +208,7 @@ void  *OpenCLKernel::AddArgument(const char *name, uint32_t size, uint32_t count
 {
    ka_t      *ka = &ip_KernelArguments[ii_ArgumentCount];
    cl_int     status;
-   
+
    ii_ArgumentCount++;
 
    strcpy(ka->name, name);
@@ -216,7 +216,7 @@ void  *OpenCLKernel::AddArgument(const char *name, uint32_t size, uint32_t count
    ka->count = count;
    ka->memFlags = memFlags;
    ka->mustFreeGpuBuffer = true;
-   
+
    if (cpuMemory == NULL)
    {
       ka->cpuBuffer = xmalloc(size * (count + 1));
@@ -227,16 +227,16 @@ void  *OpenCLKernel::AddArgument(const char *name, uint32_t size, uint32_t count
       ka->cpuBuffer = cpuMemory;
       ka->mustFreeCpuBuffer = false;
    }
-   
+
    ka->bytes = size * count;
 
    ka->gpuBuffer = clCreateBuffer(ip_OpenCLDevice->GetContext(), memFlags, ka->bytes, NULL, &status);
-   
+
    ip_OpenCLDevice->IncrementGpuBytes(ka->bytes);
-   
+
    if (status != CL_SUCCESS)
       OpenCLErrorChecker::ExitIfError("clCreateBuffer", status, "bytes: %d", ka->bytes);
-   
+
    return ka->cpuBuffer;
 }
 
@@ -247,7 +247,7 @@ void OpenCLKernel::PrintStatistics(uint64_t bytesPerWorkGroup)
       App   *theApp = get_app();
 
       uint64_t privateBytes = bytesPerWorkGroup;
-      
+
       theApp->WriteToConsole(COT_OTHER, "CL_DEVICE_MAX_COMPUTE_UNITS = %u", ip_OpenCLDevice->GetMaxComputeUnits());
       theApp->WriteToConsole(COT_OTHER, "CL_DEVICE_GLOBAL_MEM_SIZE = %u", ii_DeviceGlobalMemorySize);
       theApp->WriteToConsole(COT_OTHER, "CL_DEVICE_LOCAL_MEM_SIZE = %u", ii_DeviceLocalMemorySize);
@@ -255,9 +255,9 @@ void OpenCLKernel::PrintStatistics(uint64_t bytesPerWorkGroup)
       theApp->WriteToConsole(COT_OTHER, "CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE = %u", ii_WorkGroupSizeMultiple);
       theApp->WriteToConsole(COT_OTHER, "CL_KERNEL_LOCAL_MEM_SIZE = %u", ii_LocalMemorySize);
       theApp->WriteToConsole(COT_OTHER, "CL_KERNEL_PRIVATE_MEM_SIZE = %u", ii_PrivateMemorySize);
-      
+
       theApp->WriteToConsole(COT_OTHER, "GPU global bytes allocated = %" PRIu64"", ip_OpenCLDevice->GetGpuBytes());
-      
+
       if (privateBytes > 0)
          theApp->WriteToConsole(COT_OTHER, "GPU private bytes allocated = %" PRIu64"", bytesPerWorkGroup * ii_KernelWorkGroupSize);
    }
@@ -277,15 +277,15 @@ void OpenCLKernel::Execute(uint32_t workSize)
 
    status = clEnqueueNDRangeKernel(im_CommandQueue, im_OpenCLKernel, 1, NULL, globalWorkGroupSize, NULL, 0, NULL, NULL);
 
-   OpenCLErrorChecker::ExitIfError("clEnqueueNDRangeOpenCLKernel", status, "kernelName: %s  globalworksize %u  localworksize %u", 
+   OpenCLErrorChecker::ExitIfError("clEnqueueNDRangeOpenCLKernel", status, "kernelName: %s  globalworksize %u  localworksize %u",
                              is_KernelName.c_str(), (uint32_t) globalWorkGroupSize[0], (uint32_t) ii_KernelWorkGroupSize);
 
    GetGPUOutput();
-   
+
    status =  clFinish(im_CommandQueue);
 
    OpenCLErrorChecker::ExitIfError("clFinish", status, "kernelName: %s",  is_KernelName.c_str());
-   
+
    ip_OpenCLDevice->AddGpuMicroseconds(Clock::GetCurrentMicrosecond() - startTime);
 }
 
@@ -299,13 +299,13 @@ void OpenCLKernel::SetGPUInput(void)
    {
       ka = &ip_KernelArguments[aa];
       status = clSetKernelArg(im_OpenCLKernel, aa, sizeof(cl_mem), &ka->gpuBuffer);
-      
+
       OpenCLErrorChecker::ExitIfError("clSetOpenCLKernelArg", status, "kernelName: %s  index %d  argument: %s  size: %d",
                                 is_KernelName.c_str(), aa, ka->name, ka->bytes);
 
       if (ka->memFlags == CL_MEM_WRITE_ONLY)
          continue;
-      
+
       status = clEnqueueWriteBuffer(im_CommandQueue, ka->gpuBuffer, CL_TRUE, 0, ka->bytes, ka->cpuBuffer, 0, NULL, NULL);
 
       OpenCLErrorChecker::ExitIfError("clEnqueueWriteBuffer", status, "argument: %s", ka->name);
@@ -321,10 +321,10 @@ void OpenCLKernel::GetGPUOutput(void)
    for (aa=0; aa<ii_ArgumentCount; aa++)
    {
       ka = &ip_KernelArguments[aa];
-            
+
       if (ka->memFlags == CL_MEM_READ_ONLY)
          continue;
-           
+
       status = clEnqueueReadBuffer(im_CommandQueue, ka->gpuBuffer, CL_TRUE, 0, ka->bytes, ka->cpuBuffer, 0, NULL, NULL);
 
       OpenCLErrorChecker::ExitIfError("clEnqueueReadBuffer", status, "argument: %s", ka->name);

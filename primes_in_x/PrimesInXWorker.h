@@ -34,7 +34,7 @@ private:
    PrimesInXApp     *ip_PrimesInXApp;
 
    uint32_t         *ii_e3Terms;                        // The string as an array of terms < 1000
-   uint32_t         *ii_e6Terms;                        // The string as an array of terms < 1000000 
+   uint32_t         *ii_e6Terms;                        // The string as an array of terms < 1000000
    uint32_t         *ii_e9Terms;                        // The string as an array of trems < 1000000000
 };
 

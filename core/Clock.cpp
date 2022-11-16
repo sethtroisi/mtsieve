@@ -64,17 +64,17 @@ uint64_t  Clock::GetThreadMicroseconds(void)
    thread_info_data_t      thinfo;
    mach_msg_type_number_t  thread_info_count;
    thread_basic_info_t     tbi;
-   
+
    thisThread = mach_thread_self();
    thread_info_count = TASK_BASIC_INFO_COUNT;
-   
+
    kern_return_t error = thread_info(thisThread, THREAD_BASIC_INFO, (thread_info_t) thinfo, &thread_info_count);
-                
+
    assert(error == KERN_SUCCESS);
-   
+
    tbi = (thread_basic_info_t)thinfo;
 
-   return (uint64_t) (tbi->user_time.seconds + tbi->system_time.seconds) * 1000000 
+   return (uint64_t) (tbi->user_time.seconds + tbi->system_time.seconds) * 1000000
       + (tbi->user_time.microseconds + tbi->system_time.microseconds);
 #else
    struct rusage r;
@@ -97,10 +97,10 @@ uint64_t  Clock::GetProcessMicroseconds(void)
 #else
    struct rusage r;
    getrusage(RUSAGE_CHILDREN,&r);
-   
+
    uint64_t usage = (uint64_t)(r.ru_utime.tv_sec + r.ru_stime.tv_sec)*1000000
       + (r.ru_utime.tv_usec + r.ru_stime.tv_usec);
-      
+
    getrusage(RUSAGE_SELF,&r);
    return usage + (uint64_t)(r.ru_utime.tv_sec + r.ru_stime.tv_sec)*1000000
       + (r.ru_utime.tv_usec + r.ru_stime.tv_usec);

@@ -22,12 +22,12 @@ PrimesInXWorker::PrimesInXWorker(uint32_t myId, App *theApp) : Worker(myId, theA
    ii_e3Terms = ip_PrimesInXApp->Get3DigitTermsCopy();
    ii_e6Terms = ip_PrimesInXApp->Get6DigitTermsCopy();
    ii_e9Terms = ip_PrimesInXApp->Get9DigitTermsCopy();
-   
+
    ib_Initialized = true;
 }
 
 void  PrimesInXWorker::CleanUp(void)
-{   
+{
    if (ii_e3Terms) xfree(ii_e3Terms);
    if (ii_e6Terms) xfree(ii_e6Terms);
    if (ii_e9Terms) xfree(ii_e9Terms);
@@ -49,11 +49,11 @@ void  PrimesInXWorker::TestMegaPrimeChunk(void)
       ps[1] = il_PrimeList[pIdx+1];
       ps[2] = il_PrimeList[pIdx+2];
       ps[3] = il_PrimeList[pIdx+3];
-            
+
       if (lminRemaining > 9 && ps[0] > 1000000000)
       {
          power = 9;
-         
+
          // Can only use this after reaching p=1e9
          index = (lminRemaining / power) - 1;
          n1 = ii_e9Terms;
@@ -62,7 +62,7 @@ void  PrimesInXWorker::TestMegaPrimeChunk(void)
       else if (lminRemaining > 6 && ps[0] > 1000000)
       {
          power = 6;
-         
+
          // Can only use this after reaching p=1e6
          index = (lminRemaining / power) - 1;
          n1 = ii_e6Terms;
@@ -71,7 +71,7 @@ void  PrimesInXWorker::TestMegaPrimeChunk(void)
       else if (lminRemaining > 3 && ps[0] > 1000)
       {
          power = 3;
-         
+
          // Can only use this after reaching p=1e3
          index = (lminRemaining / power) - 1;
          n1 = ii_e3Terms;
@@ -83,15 +83,15 @@ void  PrimesInXWorker::TestMegaPrimeChunk(void)
          // Set the "end of list" dynamically
          saveTerm = n1[index];
          n1[index] = multiplier;
-      
+
          gotFactor = pixsieve(n1, &n2[index*power], ps, multiplier);
-      
+
          // Restore the "end of list"
          n1[index] = saveTerm;
       }
       else
          gotFactor = pixsieve(n2, 0, ps, 10);
-   
+
       if (gotFactor)
       {
          ExtractFactors(ps[0]);
@@ -99,7 +99,7 @@ void  PrimesInXWorker::TestMegaPrimeChunk(void)
          ExtractFactors(ps[2]);
          ExtractFactors(ps[3]);
       }
-      
+
       SetLargestPrimeTested(ps[3], 4);
 
       if (ps[0] > maxPrime)
@@ -135,7 +135,7 @@ void  PrimesInXWorker::ExtractFactors(uint64_t p)
       rem /= 10;
    }
    firstDigit = rem;
-   
+
    inverse = 1.0/p;
    rem = 0;
 
@@ -145,7 +145,7 @@ void  PrimesInXWorker::ExtractFactors(uint64_t p)
       __builtin_prefetch(&terms[i+PREFETCH], 0, 0);
 #endif
       n = terms[i];
-      
+
       qd = (((double)rem * 10.0) + (double)n);
 
       q = (int64_t) (qd * inverse);
@@ -161,7 +161,7 @@ void  PrimesInXWorker::ExtractFactors(uint64_t p)
       {
          if (plength == i+1 && terms[0] == firstDigit)
             ip_PrimesInXApp->ReportPrime(p, i+1);
-         else 
+         else
             ip_PrimesInXApp->ReportFactor(p, i+1);
       }
    }

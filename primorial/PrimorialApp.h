@@ -32,13 +32,13 @@ public:
    void              ValidateOptions(void);
    bool              ApplyFactor(uint64_t thePrime, const char *term);
    void              GetExtraTextForSieveStartedMessage(char *extraText);
-   
+
    uint32_t          GetMinPrimorial(void) { return ii_MinPrimorial; };
    uint32_t          GetMaxPrimorial(void) { return ii_MaxPrimorial; };
-   
+
    uint32_t         *GetPrimorialPrimes(uint32_t &numberOfPrimorialPrimes) { numberOfPrimorialPrimes = ii_NumberOfPrimorialPrimes; return ip_PrimorialPrimes; };
-   uint16_t         *GetPrimorialPrimeGaps(uint16_t &biggestGap) { biggestGap = ii_BiggestGap; return ip_PrimorialPrimeGaps; };   
-   
+   uint16_t         *GetPrimorialPrimeGaps(uint16_t &biggestGap) { biggestGap = ii_BiggestGap; return ip_PrimorialPrimeGaps; };
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          GetMaxGpuSteps(void) { return ii_MaxGpuSteps; };
    uint32_t          GetMaxGpuFactors(void) { return ii_MaxGpuFactors; };
@@ -49,13 +49,13 @@ public:
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested) {};
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
-   
+
    Worker           *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
 
    void              VerifyFactor(uint64_t theFactor, uint32_t primorial, int32_t c);
@@ -66,13 +66,13 @@ private:
 
    uint32_t         *ip_PrimorialPrimes;
    uint32_t          ii_NumberOfPrimorialPrimes;
-   
+
    uint16_t         *ip_PrimorialPrimeGaps;
    uint16_t          ii_BiggestGap;
-   
+
    uint32_t          ii_MinPrimorial;
    uint32_t          ii_MaxPrimorial;
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          ii_MaxGpuSteps;
    uint32_t          ii_MaxGpuFactors;

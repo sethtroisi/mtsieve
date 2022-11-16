@@ -49,11 +49,11 @@ public:
    // but that the GPU will only read.
    void      *AddCpuArgument(const char *name, uint32_t size, uint32_t count);
    void      *AddCpuArgument(const char *name, uint32_t size, uint32_t count, void *cpuMemory);
-   
+
    // This adds an argument to the OpenCLKernel for memory that the GPU will write to
    // but that the CPU will only read.
    void      *AddGpuArgument(const char *name, uint32_t size, uint32_t count);
-   
+
    // This adds an argument to the OpenCLKernel for memory that bot the CPU and GPU
    // can read and write.
    void      *AddSharedArgument(const char *name, uint32_t size, uint32_t count);
@@ -62,7 +62,7 @@ public:
    void      *AddArgument(const char *name, GpuKernel *other);
 
    ka_t      *GetKernelArgument(const char *name);
-   
+
 private:
    void      *AddArgument(const char *name, uint32_t size, uint32_t count, void *cpuMemory, cl_mem_flags memFlags);
 
@@ -82,7 +82,7 @@ private:
    uint32_t          ii_PrivateMemorySize;
 
    size_t            ii_KernelWorkGroupSize;
-   
+
    uint32_t          ii_ArgumentCount;
    ka_t             *ip_KernelArguments;
 };

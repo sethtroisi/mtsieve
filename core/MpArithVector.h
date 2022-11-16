@@ -4,8 +4,8 @@
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
-   Thanks to Yves Gallot for this implementation based upon 
+
+   Thanks to Yves Gallot for this implementation based upon
    Peter L. Montgomery, Modular multiplication without trial division, Math. Comp.44 (1985), 519–521.
 */
 
@@ -70,7 +70,7 @@ public:
 			_q[k] = invert(p_k);
 			_one[k] = (-p_k) % p_k;
 		}
-		
+
 		MpResVector<N> t = add(_one, _one); t = add(t, t);	// 4
 		for (size_t i = 0; i < 5; ++i) t = mul(t, t);	// 4^{2^5} = 2^64
 		_r2 = t;
@@ -86,7 +86,7 @@ public:
 	MpResVector<N> one() const { return _one; }	// Montgomery form of 1
 
 	uint64_t p(size_t k) const { return _p[k]; }
-   
+
 	static bool at_least_one_is_equal(const MpResVector<N> & a, const MpResVector<N> & b)
 	{
 		bool is_equal = false;
@@ -115,17 +115,17 @@ public:
 		}
 		return r;
 	}
-   
+
 	uint64_t mul(const uint64_t a, const MpResVector<N> & b, size_t k) const
 	{
 	   return REDC(a * __uint128_t(b[k]), _p[k], _q[k]);
 	}
-  
+
    uint64_t mul(const MpResVector<N> & a, const MpResVector<N> & b, size_t k) const
 	{
 	   return REDC(a[k] * __uint128_t(b[k]), _p[k], _q[k]);
 	}
-   
+
 	MpResVector<N> mul(const MpResVector<N> & a, const MpResVector<N> & b) const
 	{
 		MpResVector<N> r;
@@ -135,7 +135,7 @@ public:
 		}
 		return r;
 	}
-   
+
 	MpResVector<N> pow(const MpResVector<N> & a, size_t exp) const
 	{
       MpResVector<N> x = a;
@@ -153,7 +153,7 @@ public:
 
          x = mul(x, x);
       }
-      
+
       return y;
 	}
 
@@ -162,37 +162,37 @@ public:
 	{
 		// n * (2^64)^2 = (n * 2^64) * (1 * 2^64)
 		MpResVector<N> r;
-      
+
 		for (size_t k = 0; k < N; ++k)
          r[k] = n[k];
-         
+
 		return mul(r, _r2);
 	}
-   
+
 	// Convert n to Montgomery representation
 	MpResVector<N> nToRes(uint64_t n) const
 	{
 		// n * (2^64)^2 = (n * 2^64) * (1 * 2^64)
 		MpResVector<N> r;
-      
+
 		for (size_t k = 0; k < N; ++k)
          r[k] = n;
-         
+
 		return mul(r, _r2);
 	}
-   
+
 	// Convert n to Montgomery representation
 	MpResVector<N> nToRes(uint32_t *n) const
 	{
 		// n * (2^64)^2 = (n * 2^64) * (1 * 2^64)
 		MpResVector<N> r;
-      
+
 		for (size_t k = 0; k < N; ++k)
          r[k] = n[k];
-         
+
 		return mul(r, _r2);
 	}
-   
+
    // Convert Montgomery representation to n
 	MpResVector<N> resToN(const MpResVector<N> & a) const
 	{

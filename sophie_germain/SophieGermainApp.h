@@ -1,7 +1,7 @@
 /* SophieGermainApp.h -- (C) Mark Rodenkirch, July 2020
 
    This class inherits from App.h and has the implementation for this project
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
@@ -31,7 +31,7 @@ public:
    void              ValidateOptions(void);
    bool              ApplyFactor(uint64_t theFactor, const char *term);
    void              GetExtraTextForSieveStartedMessage(char *extraText);
-   
+
    uint64_t          GetMinK(void) { return il_MinK; };
    uint64_t          GetMaxK(void) { return il_MaxK; };
    uint32_t          GetBase(void) { return ii_Base; };
@@ -43,26 +43,26 @@ public:
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested) {};
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
-   
+
    Worker           *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
 
 private:
    uint64_t          WriteABCDTermsFile(uint64_t maxPrime, FILE *termsFile);
    uint64_t          WriteNewPGenTermsFile(uint64_t maxPrime, FILE *termsFile);
-   
+
    void              VerifyFactor(uint64_t theFactor, uint64_t k, bool firstOfPair);
-   
+
    std::vector<bool> iv_Terms;
-   
+
    bool              ib_GeneralizedSearch;
    format_t          it_Format;
-   
+
    std::string       is_InputFileName;
    std::string       is_OutputFileName;
 

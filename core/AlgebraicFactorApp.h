@@ -16,22 +16,22 @@
 
 
 class AlgebraicFactorApp : public FactorApp
-{  
+{
 public:
    AlgebraicFactorApp(void);
    ~AlgebraicFactorApp(void);
 
 protected:
    virtual void      EliminateTermsWithAlgebraicFactors(void) = 0;
-   
+
    bool              IsGfnOrMersenneForm(uint64_t k, uint32_t base, int32_t c);
-   
+
    void              GetRoot(uint64_t theNumber, uint64_t *root, uint32_t *power);
-   
-private:   
+
+private:
    // These variables are used by this class when looking for algebraic factors.
    std::vector<uint64_t>  iv_SmallPrimes;
-   
+
    void              GetSmallPrimes(void);
    uint32_t          GetFactorList(uint64_t the_number, uint64_t *factor_list, uint32_t *power_list);
 };

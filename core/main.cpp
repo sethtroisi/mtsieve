@@ -4,7 +4,7 @@
 
    For each prime p in 3 <= p0 <= p < p1 < 2^62
      Do something with p
-     
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
@@ -48,7 +48,7 @@ void SetQuitting(int sig)
       fprintf(stderr, "\nCTRL-C already hit, so I'm going to terminate now.  Remaining terms file is not complete\n");
       exit(0);
    }
-   
+
    theApp->Interrupt();
    gb_ForceQuit = true;
 }
@@ -62,7 +62,7 @@ int   main(int argc, char *argv[])
    theApp = get_app();
 
    theApp->Banner();
-   
+
    ProcessArgs(theApp, argc, argv);
 
    // Ignore SIGHUP, as to not die on logout.
@@ -233,7 +233,7 @@ void *xmallocNew(size_t requestedSize, bool exitIfError, const char *what)
    {
       if (exitIfError)
          FatalError("Unable to allocate %" PRIu64" bytes of memory for %s", (uint64_t) requestedSize, what);
-      
+
       printf("Unable to allocate %" PRIu64" bytes of memory for %s\n", (uint64_t) requestedSize, what);
       return NULL;
    }
@@ -241,24 +241,24 @@ void *xmallocNew(size_t requestedSize, bool exitIfError, const char *what)
    cpuBytes += allocatedSize;
 
    memset(allocatedPtr, 0x00, allocatedSize);
-   
+
    temp = (uint64_t) allocatedPtr;
-   
+
    // We want temp divisible by 64 and within the allocated area
    temp = temp - (temp%64) + 64;
-   
+
    // Align to a 64-byte boundary
    currentPtr = (char *) temp;
 
    // Put the pointer to the allocated memory here
    *(uint64_t *) currentPtr = (uint64_t) allocatedPtr;
-      
+
    // Put the size of the  to what was actually allocated here
    *(size_t *) (currentPtr + 8) = allocatedSize;
 
    // Get to the next boundary
    currentPtr += 64;
-   
+
    // This will help us detect someone going past what they are supposed to
    *(currentPtr + requestedSize) = 0xff;
 
@@ -271,17 +271,17 @@ void xfree(void *memoryPtr)
    void     *allocatedPtr;
    size_t    allocatedSize;
    uint64_t  temp;
-   
+
    temp = (uint64_t) memoryPtr;
-   
+
    currentPtr = (char *) (temp - 64);
-   
+
    // Reduce by what we actually allocated
    allocatedSize = *(size_t *) (currentPtr + 8);
    cpuBytes -= allocatedSize;
-   
+
    allocatedPtr =  (void *) *(uint64_t *) currentPtr;
-   
+
    free(allocatedPtr);
 }
 

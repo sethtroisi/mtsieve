@@ -33,7 +33,7 @@ Worker::Worker(uint32_t myId, App *theApp)
 
    sprintf(name1, "thread_%d_stats", myId);
    sprintf(name3, "thread_%d_worker", myId);
-   
+
    ip_StatsLocker = new SharedMemoryItem(name1);
    ip_WorkerStatus = new SharedMemoryItem(name3);
 
@@ -49,13 +49,13 @@ Worker::Worker(uint32_t myId, App *theApp)
    ib_GpuWorker = false;
 
    ii_MaxWorkSize = ip_App->GetCpuWorkSize();
-   
+
    il_PrimeList = NULL;
 
    ii_MiniChunkSize = 0;
    il_MinPrimeForMiniChunkMode = PMAX_MAX_62BIT;
    il_MaxPrimeForMiniChunkMode = PMAX_MAX_62BIT;
-   
+
 #ifdef WIN32
    // Ignore the thread handle return since the parent process won't suspend
    // or terminate the thread.
@@ -75,7 +75,7 @@ Worker::~Worker()
 {
    delete ip_StatsLocker;
    delete ip_WorkerStatus;
-   
+
    // GPU worker memory is freed in the Kernel destructor
    if (!ib_GpuWorker && il_PrimeList != NULL)
       xfree(il_PrimeList);
@@ -92,7 +92,7 @@ static void *ThreadEntryPoint(void *threadInfo)
    Worker *worker;
 
    worker = (Worker *) threadInfo;
-   
+
    while (!worker->IsInitialized())
       Sleep(10);
 
@@ -109,12 +109,12 @@ void  Worker::AllocatePrimeList(void)
 {
    if (il_PrimeList != NULL)
       return;
- 
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    if (ib_GpuWorker)
       ii_MaxWorkSize = ip_App->GetGpuPrimesPerWorker();
 #endif
-   
+
    // Get a little extra space because we want to use 0 to end the list.
    il_PrimeList = (uint64_t *) xmalloc((ii_MaxWorkSize + 10) * sizeof(uint64_t));
 }
@@ -127,24 +127,24 @@ void  Worker::StartProcessing(void)
 #ifdef USE_X86
    uint16_t savedFpuMode;
 #endif
-   
+
    AllocatePrimeList();
-   
+
    SetStatusWaitingForWork();
-   
+
    while (true)
    {
       if (IsStatusWaitingForWork())
       {
          if (ip_App->IsSievingDone())
             break;
-      
+
          Sleep(1);
          continue;
       }
-                  
+
       SetStatusWorking();
-      
+
       startTime = Clock::GetThreadMicroseconds();
 
 #ifdef USE_X86
@@ -152,9 +152,9 @@ void  Worker::StartProcessing(void)
       savedFpuMode = fpu_mod_init();
 #endif
 
-      if (ii_MiniChunkSize > 0 && 
+      if (ii_MiniChunkSize > 0 &&
          il_PrimeList[0] > il_MinPrimeForMiniChunkMode &&
-         il_PrimeList[ii_PrimesInList-1] < il_MaxPrimeForMiniChunkMode)      
+         il_PrimeList[ii_PrimesInList-1] < il_MaxPrimeForMiniChunkMode)
          TestWithMiniChunks();
       else
          TestMegaPrimeChunk();
@@ -162,14 +162,14 @@ void  Worker::StartProcessing(void)
 #ifdef USE_X86
       fpu_mod_fini(savedFpuMode);
 #endif
-      
+
       // We need to lock while updating these variables as the main thread can read them.
       ip_StatsLocker->Lock();
-      
+
       endTime = Clock::GetThreadMicroseconds();
 
       il_WorkerCpuUS += (endTime - startTime);
-      
+
       ip_StatsLocker->Release();
 
       if (!ib_GpuWorker && il_LargestPrimeTested > 100000)
@@ -179,20 +179,20 @@ void  Worker::StartProcessing(void)
          // This is the hard-coded limit in App.cpp
          if (newWorkSize > 1000000000)
             newWorkSize = 1000000000;
-            
+
          if (ii_MyId == 1 && newWorkSize > ii_MaxWorkSize)
             ip_App->WriteToConsole(COT_OTHER, "Increasing worksize to %llu since each chunk is tested in less than a second", newWorkSize);
-            
+
          if (ii_MyId == 1 && newWorkSize < ii_MaxWorkSize)
             ip_App->WriteToConsole(COT_OTHER, "Decreasing worksize to %llu since each chunk needs more than 5 seconds to test", newWorkSize);
-         
+
          if (newWorkSize != ii_MaxWorkSize)
          {
             ii_MaxWorkSize = (uint32_t) newWorkSize;
-         
+
             xfree(il_PrimeList);
             il_PrimeList = NULL;
-            
+
             AllocatePrimeList();
          }
       }
@@ -207,10 +207,10 @@ void   Worker::SetMiniChunkRange(uint64_t minPrimeForMiniChunkMode, uint64_t max
 {
    if (chunkSize < 2 || chunkSize > 128)
       FatalError("Invalid number for chunk size");
-   
+
    ii_MiniChunkSize = chunkSize;
    il_MinPrimeForMiniChunkMode = minPrimeForMiniChunkMode;
-   il_MaxPrimeForMiniChunkMode = maxPrimeForMiniChunkMode;   
+   il_MaxPrimeForMiniChunkMode = maxPrimeForMiniChunkMode;
 }
 
 void    Worker::TestWithMiniChunks(void)
@@ -219,20 +219,20 @@ void    Worker::TestWithMiniChunks(void)
    uint32_t countInChunk = 0;
    uint64_t miniPrimeChunk[128];
    uint32_t pIdx = 0;
-   
+
    while (pIdx < ii_PrimesInList && il_PrimeList[pIdx] < maxPrime)
    {
       countInChunk = 0;
-      
+
       while (pIdx < ii_PrimesInList && countInChunk < ii_MiniChunkSize)
       {
          miniPrimeChunk[countInChunk] = il_PrimeList[pIdx];
-         
+
          pIdx++;
-         
+
          countInChunk++;
       }
-   
+
       if (countInChunk == 0)
          break;
 
@@ -242,9 +242,9 @@ void    Worker::TestWithMiniChunks(void)
          miniPrimeChunk[countInChunk] = miniPrimeChunk[countInChunk-1];
          countInChunk++;
       }
-      
+
       TestMiniPrimeChunk(miniPrimeChunk);
-      
+
       il_PrimesTested += countInChunk;
       il_LargestPrimeTested = miniPrimeChunk[countInChunk-1];
    }
@@ -253,12 +253,12 @@ void    Worker::TestWithMiniChunks(void)
 uint64_t Worker::ComputeOptimalWorkSize(uint64_t startTime, uint64_t endTime)
 {
    uint64_t optimalWorkSize = ii_MaxWorkSize;
-   
+
    if (endTime - startTime == 0)
       return optimalWorkSize * 10;
-   
+
    double seconds = (double) ((endTime - startTime)) / 1000000.0;
-   
+
    if (seconds < 1.0)
    {
       while (seconds < 1.0)
@@ -266,10 +266,10 @@ uint64_t Worker::ComputeOptimalWorkSize(uint64_t startTime, uint64_t endTime)
          seconds *= 4.0;
          optimalWorkSize *= 4;
       }
-      
+
       return optimalWorkSize;
    }
-   
+
    if (seconds > 5.0)
    {
       while (seconds > 5.0)
@@ -277,13 +277,13 @@ uint64_t Worker::ComputeOptimalWorkSize(uint64_t startTime, uint64_t endTime)
          seconds /= 2;
          optimalWorkSize /= 2;
       }
-      
+
       while (optimalWorkSize % 32)
          optimalWorkSize++;
 
       return optimalWorkSize;
    }
-   
+
    return optimalWorkSize;
 }
 
@@ -326,7 +326,7 @@ uint64_t Worker::InvMod64(uint64_t a, uint64_t p)
 
    uint64_t ps1, ps2, q, r, t, dividend, divisor;
    uint32_t parity;
- 
+
    assert(a < p);
 
    if (a < 3)

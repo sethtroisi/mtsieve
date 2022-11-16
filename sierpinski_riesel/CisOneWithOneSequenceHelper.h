@@ -1,10 +1,10 @@
 /* CisOneWithOneSequenceHelper.h -- (C) Mark Rodenkirch, January 2021
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
+
    This class is used if any sequence has abs(c) = 1.
 */
 
@@ -29,7 +29,7 @@ public:
    CisOneWithOneSequenceHelper(App *theApp, uint64_t largestPrimeTested);
 
    ~CisOneWithOneSequenceHelper(void) {};
-   
+
    Worker        *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
 
    uint32_t      *GetCongruentQIndices(void) { return ip_CongruentQIndices; };
@@ -43,17 +43,17 @@ public:
    uint32_t       GetDim1(void) { return ii_Dim1; };
    uint32_t       GetDim2(void) { return ii_Dim2; };
    uint32_t       GetDim3(void) { return ii_Dim3; };
-   
+
 protected:
    double         RateQ(uint32_t Q, uint32_t s);
    double         EstimateWork(uint32_t Q, uint32_t s);
-   
+
    void           BuildCongruenceTables(void);
    void           BuildCongruenceTablesForSequence(seq_t *seqPtr);
 
    void           CopyQsAndMakeLadder(seq_t *seqPtr, sp_t parity, uint32_t r, uint32_t h, uint16_t *qList, uint32_t qListLen);
    void           MakeLadder(uint16_t *qList, uint32_t qListLen);
-   
+
    void           ComputeLegendreMemoryToAllocate(legendre_t *legendrePtr, uint64_t ssqfb);
    void           AssignMemoryToLegendreTable(legendre_t *legendrePtr, uint64_t bytesUsed);
    void           BuildLegendreTableForSequence(legendre_t *legendrePtr, uint64_t ssqfb, uint64_t stepsToDo, uint64_t stepsDone, time_t startTime);
@@ -61,15 +61,15 @@ protected:
    uint32_t       ii_Dim1;
    uint32_t       ii_Dim2;
    uint32_t       ii_Dim3;
-   
+
    uint32_t       ii_UsedQEntries;
    uint32_t       ii_UsedLadderEntries;
    uint32_t       ii_MaxQEntries;
    uint32_t       ii_MaxLadderEntries;
-   
+
    uint32_t      *ip_CongruentQIndices;
    uint32_t      *ip_LadderIndices;
-   
+
    uint16_t      *ip_AllQs;
    uint16_t      *ip_AllLadders;
 };

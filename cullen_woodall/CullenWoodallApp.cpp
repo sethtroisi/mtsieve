@@ -47,7 +47,7 @@ CullenWoodallApp::CullenWoodallApp(void) : AlgebraicFactorApp()
    it_Format = FF_ABC;
 
    SetAppMinPrime(3);
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    ii_MaxGpuSteps = 100000;
    ii_MaxGpuFactors = GetGpuWorkGroups() * 10;
@@ -80,10 +80,10 @@ void  CullenWoodallApp::AddCommandLineOptions(std::string &shortOpts, struct opt
    AppendLongOpt(longOpts, "max_n",          required_argument, 0, 'N');
    AppendLongOpt(longOpts, "sign",           required_argument, 0, 's');
    AppendLongOpt(longOpts, "format",         required_argument, 0, 'f');
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    shortOpts += "S:M:";
-   
+
    AppendLongOpt(longOpts, "maxsteps",       required_argument, 0, 'S');
    AppendLongOpt(longOpts, "maxfactors",     required_argument, 0, 'M');
 #endif
@@ -111,18 +111,18 @@ parse_t CullenWoodallApp::ParseOption(int opt, char *arg, const char *source)
       case 'N':
          status = Parser::Parse(arg, 2, 1000000000, ii_MaxN);
          break;
-		 
+
       case 'f':
          status = Parser::Parse(arg, "AL", value);
-         
+
          it_Format = FF_UNKNOWN;
-   
+
          if (value == 'A')
             it_Format = FF_ABC;
          if (value == 'L')
             it_Format = FF_LLR;
          break;
-         
+
       case 's':
          status = Parser::Parse(arg, "+-b", value);
          if (value == '-')
@@ -132,7 +132,7 @@ parse_t CullenWoodallApp::ParseOption(int opt, char *arg, const char *source)
          if (value == 'b')
             ib_Woodall = ib_Cullen = true;
          break;
-         
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
       case 'S':
          status = Parser::Parse(arg, 1, 1000000000, ii_MaxGpuSteps);
@@ -151,13 +151,13 @@ void CullenWoodallApp::ValidateOptions(void)
 {
    if (it_Format == FF_UNKNOWN)
       FatalError("the specified file format in not valid, use A (ABC) or L (LLR)");
-      
+
    if (is_InputTermsFileName.length() > 0)
    {
       ProcessInputTermsFile(false);
-      
+
       il_TermCount = ii_MaxN - ii_MinN + 1;
-      
+
       iv_CullenTerms.resize(il_TermCount);
       std::fill(iv_CullenTerms.begin(), iv_CullenTerms.end(), false);
 
@@ -165,7 +165,7 @@ void CullenWoodallApp::ValidateOptions(void)
       std::fill(iv_WoodallTerms.begin(), iv_WoodallTerms.end(), false);
 
       il_TermCount = 0;
-      
+
       ProcessInputTermsFile(true);
    }
    else
@@ -186,40 +186,40 @@ void CullenWoodallApp::ValidateOptions(void)
          FatalError("Choose Cullen and/or Woodall form");
 
       il_TermCount = ii_MaxN - ii_MinN + 1;
-      
+
       iv_CullenTerms.resize(il_TermCount);
       std::fill(iv_CullenTerms.begin(), iv_CullenTerms.end(), false);
-      
+
       iv_WoodallTerms.resize(il_TermCount);
       std::fill(iv_WoodallTerms.begin(), iv_WoodallTerms.end(), false);
-      
+
       SetInitialTerms();
-      
+
       EliminateGfnAndMersenneTerms();
    }
-      
+
    if (is_OutputTermsFileName.length() == 0)
    {
       char fileName[20];
-      
+
       sprintf(fileName, "gcw_b%u.pfgw", ii_Base);
       is_OutputTermsFileName = fileName;
    }
-   
+
    FactorApp::ParentValidateOptions();
-   
+
    // This is only done when starting a new sieve, but has to be done
-   // after the call to ParentValidateOptions() as that method will 
+   // after the call to ParentValidateOptions() as that method will
    // open the factor file that algebraic factors will be written to.
    if (is_InputTermsFileName.length() == 0)
       EliminateTermsWithAlgebraicFactors();
 
    uint32_t pForSingleWorker = ((ii_Base < ii_MaxN) ? (ii_MaxN + 1) : (ii_Base + 1));
-   
+
    // The Worker will trigger a rebuild of terms when it reaches this prime
    // At this prime multiple threads can be used.
    SetMaxPrimeForSingleWorker(pForSingleWorker);
-   
+
    // The GPU code for this sieve will not support primes lower than this.
    SetMinGpuPrime(pForSingleWorker);
 }
@@ -228,13 +228,13 @@ Worker *CullenWoodallApp::CreateWorker(uint32_t id, bool gpuWorker, uint64_t lar
 {
    Worker *theWorker;
 
-#if defined(USE_OPENCL) || defined(USE_METAL)  
+#if defined(USE_OPENCL) || defined(USE_METAL)
    if (gpuWorker)
       theWorker = new CullenWoodallGpuWorker(id, this);
    else
 #endif
       theWorker = new CullenWoodallWorker(id, this);
-   
+
    return theWorker;
 }
 
@@ -257,7 +257,7 @@ void CullenWoodallApp::ProcessInputTermsFile(bool haveBitMap)
 
    if (sscanf(buffer, "ABC $a*%d^$a$b // Sieved to %" SCNu64"", &ii_Base, &p) == 2)
       format = FF_ABC;
-      
+
    if (sscanf(buffer, "ABC $a*$b^$a$c // Sieved to %" SCNu64"", &p) == 1)
       format = FF_LLR;
 
@@ -276,28 +276,28 @@ void CullenWoodallApp::ProcessInputTermsFile(bool haveBitMap)
          if (sscanf(buffer, "%u %d", &n, &c) != 2)
             FatalError("Line %s is malformed", buffer);
       }
-      
+
       if (format == FF_LLR)
       {
          if (sscanf(buffer, "%u %u %d", &n, &b, &c) != 3)
             FatalError("Line %s is malformed", buffer);
-         
+
          if (il_TermCount == 0)
             ii_Base = b;
-         
+
          if (ii_Base != b)
             FatalError("Multiple bases specified in input file");
       }
-      
+
 
       if (haveBitMap)
       {
          if (c == +1)
             iv_CullenTerms[BIT(n)] = true;
-         
+
          if (c == -1)
             iv_WoodallTerms[BIT(n)] = true;
-            
+
          il_TermCount++;
       }
       else
@@ -323,26 +323,26 @@ bool CullenWoodallApp::ApplyFactor(uint64_t theFactor, const char *term)
 {
    uint32_t n1, b, n2;
    int32_t  c;
-   
+
    if (sscanf(term, "%u*%u^%u%d", &n1, &b, &n2, &c) != 4)
       FatalError("Could not parse term %s\n", term);
 
    if (b != ii_Base)
       FatalError("base is correct for term %s (%u != %u)\n", term, ii_Base, b);
-   
+
    if (c != -1 && c != +1)
       FatalError("c (%d) is neither +1 nor -1 for term %s\n", c, term);
-   
+
    if (n1 != n2)
       FatalError("n values for term %s do not match (%u != %u)\n", term, n1, n2);
-   
+
    if (n1 < ii_MinN || n1 > ii_MaxN)
       return false;
-   
+
    VerifyFactor(theFactor, n1, c);
-      
+
    uint64_t bit = BIT(n1);
-   
+
    // No locking is needed because the Workers aren't running yet
    if (c == +1 && iv_CullenTerms[bit])
    {
@@ -350,7 +350,7 @@ bool CullenWoodallApp::ApplyFactor(uint64_t theFactor, const char *term)
       il_TermCount--;
       return true;
    }
-   
+
    if (c == -1 && iv_WoodallTerms[bit])
    {
       iv_WoodallTerms[bit] = false;
@@ -380,21 +380,21 @@ void CullenWoodallApp::WriteOutputTermsFile(uint64_t largestPrime)
    for (n=ii_MinN; n<=ii_MaxN; n++)
    {
       bit = BIT(n);
-      
+
       if (iv_CullenTerms[bit])
       {
          termsCounted++;
-         
+
          if (it_Format == FF_ABC)
             fprintf(fPtr, "%u +1\n", n);
          else
             fprintf(fPtr, "%u %u +1\n", n, ii_Base);
       }
-      
+
       if (iv_WoodallTerms[bit])
       {
          termsCounted++;
-         
+
          if (it_Format == FF_ABC)
             fprintf(fPtr, "%u -1\n", n);
          else
@@ -406,7 +406,7 @@ void CullenWoodallApp::WriteOutputTermsFile(uint64_t largestPrime)
 
    if (termsCounted != il_TermCount)
       FatalError("Something is wrong.  Counted terms (%" PRIu64") != expected terms (%" PRIu64")", termsCounted, il_TermCount);
-   
+
    ip_FactorAppLock->Release();
 }
 
@@ -460,18 +460,18 @@ void  CullenWoodallApp::EliminateGfnAndMersenneTerms(void)
 {
    uint32_t n, bit;
    uint32_t removedCount = 0;
-   
+
    for (n=ii_MinN; n<=ii_MaxN; n++)
    {
       bit = BIT(n);
-      
+
       if (iv_CullenTerms[bit] && IsGfnOrMersenneForm(n, ii_Base, +1))
       {
          il_TermCount--;
          iv_CullenTerms[bit] = false;
          removedCount++;
       }
-      
+
       if (iv_WoodallTerms[bit] && IsGfnOrMersenneForm(n, ii_Base, -1))
       {
          il_TermCount--;
@@ -479,7 +479,7 @@ void  CullenWoodallApp::EliminateGfnAndMersenneTerms(void)
          removedCount++;
       }
    }
-   
+
    if (removedCount > 0)
       WriteToConsole(COT_OTHER, "%u terms removed as they were of GFN or Mersenne form", removedCount);
 }
@@ -508,18 +508,18 @@ void  CullenWoodallApp::EliminateTermsWithAlgebraicFactors(void)
          for (npow=2, nexp=nbase*nbase; nexp*bexp<=ii_MaxN; npow++, nexp*=nbase)
          {
             n = nexp * bexp;
-            
+
             if ((n+bpow)%npow == 0)
             {
                if (npow%2 == 1)
                   removedCount += CheckAlgebraicFactor(n, +1, "%u*%u^%u+1", nbase, b, (n+bpow)/npow);
-               
+
                removedCount += CheckAlgebraicFactor(n, -1, "%u*%u^%u-1", nbase, b, (n+bpow)/npow);
             }
          }
       }
    }
-   
+
    if (removedCount > 0)
       WriteToConsole(COT_OTHER, "%u terms removed due to algebraic factorizations", removedCount);
 }
@@ -529,41 +529,41 @@ bool  CullenWoodallApp::CheckAlgebraicFactor(uint32_t n, int32_t c, const char *
    va_list args;
    char    factor[200];
    bool    removedTerm = false;
-   
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-   
+
    if (c != +1 && c != -1)
       return false;
-   
+
    va_start(args,fmt);
    vsprintf(factor, fmt, args);
    va_end(args);
-      
+
    uint32_t bit = BIT(n);
-   
+
    if (c == +1 && iv_CullenTerms[bit])
    {
       iv_CullenTerms[bit] = false;
       removedTerm = true;
-      
+
       LogFactor(factor, "%u*%u^%u+1", n, ii_Base, n);
-      
+
       il_FactorCount++;
       il_TermCount--;
    }
-   
+
    if (c == -1 && iv_WoodallTerms[bit])
    {
       iv_WoodallTerms[bit] = false;
       removedTerm = true;
-      
+
       LogFactor(factor, "%u*%u^%u-1", n, ii_Base, n);
-      
+
       il_FactorCount++;
       il_TermCount--;
    }
-   
+
    return removedTerm;
 }
 
@@ -575,7 +575,7 @@ uint32_t  CullenWoodallApp::GetTerms(uint32_t *terms, uint32_t maxTermsInGroup, 
    uint32_t index = 0, bit;
    uint32_t groupCount = 0;
    uint32_t termsInGroup = 0, n;
-   
+
    ip_FactorAppLock->Lock();
 
    for (n=ii_MaxN; n>=ii_MinN; n--)
@@ -586,13 +586,13 @@ uint32_t  CullenWoodallApp::GetTerms(uint32_t *terms, uint32_t maxTermsInGroup, 
          // Indicate that there are no more terms for this group
          terms[index] = 0;
          groupCount++;
-         
+
          index = groupSize * groupCount;
          termsInGroup = 0;
       }
 
       bit = BIT(n);
-      
+
       if (iv_CullenTerms[bit] || iv_WoodallTerms[bit])
       {
          terms[index] = n;
@@ -600,7 +600,7 @@ uint32_t  CullenWoodallApp::GetTerms(uint32_t *terms, uint32_t maxTermsInGroup, 
          termsInGroup++;
       }
    }
-   
+
    // Indicate that there are no more terms for the last group
    terms[index] = 0;
 
@@ -613,14 +613,14 @@ bool CullenWoodallApp::ReportFactor(uint64_t theFactor, uint32_t n, int32_t c)
 {
    uint64_t bit;
    bool     removedTerm = false;
-   
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-      
+
    ip_FactorAppLock->Lock();
 
    bit = BIT(n);
-   
+
    if (ib_Cullen && c == +1 && iv_CullenTerms[bit])
    {
       iv_CullenTerms[bit] = false;
@@ -631,7 +631,7 @@ bool CullenWoodallApp::ReportFactor(uint64_t theFactor, uint32_t n, int32_t c)
 
       VerifyFactor(theFactor, n, c);
    }
-   
+
    if (ib_Woodall && c == -1 && iv_WoodallTerms[bit])
    {
       iv_WoodallTerms[bit] = false;
@@ -642,9 +642,9 @@ bool CullenWoodallApp::ReportFactor(uint64_t theFactor, uint32_t n, int32_t c)
 
       VerifyFactor(theFactor, n, c);
    }
-   
+
    ip_FactorAppLock->Release();
-   
+
    return removedTerm;
 }
 
@@ -657,17 +657,17 @@ void  CullenWoodallApp::VerifyFactor(uint64_t theFactor, uint32_t n, int32_t c)
    MpRes    res = mp.pow(mp.nToRes(ii_Base), n);
 
    res = mp.mul(res, mp.nToRes(n));
-   
+
    rem = mp.resToN(res);
-      
+
    if (c == -1)
       isValid = (rem == +1);
-      
+
    if (c == +1)
       isValid = (rem == theFactor-1);
-      
+
    if (isValid)
       return;
-   
+
    FatalError("%" PRIu64" is not a factor of %u*%u^%u%+d", theFactor, n, ii_Base, n, c);
 }

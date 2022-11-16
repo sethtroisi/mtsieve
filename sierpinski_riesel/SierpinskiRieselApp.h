@@ -1,7 +1,7 @@
 /* SierpinskiRieselApp.h -- (C) Mark Rodenkirch, October 2018
 
    This class inherits from App.h and has the implementation for this project
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
@@ -37,11 +37,11 @@ public:
    uint32_t          GetMaxN(void) { return ii_MaxN; };
    uint64_t          GetSmallSievePrimeLimit(void) { return il_SmallPrimeSieveLimit; };
    uint32_t          GetSquareFreeBase(void) { return ii_SquareFreeB; };
-   
+
    AbstractSequenceHelper   *GetAppHelper(void) { return ip_AppHelper; };
-   
+
    void              AddSequence(uint64_t k, int64_t c, uint32_t d);
-   
+
    seq_t            *GetSequence(uint64_t k, int64_t c, uint32_t d);
 
    void              ReportFactor(uint64_t theFactor, seq_t *seqPtr, uint32_t n, bool verifyFactor);
@@ -51,14 +51,14 @@ public:
    uint64_t          HasSingleC(void) { return ib_HaveSingleC; };
    uint64_t          GetLegendreTableBytes(void) { return il_LegendreTableBytes; };
    std::string       GetLegendreDirectoryName(void) { return is_LegendreDirectoryName; };
-   
+
    seq_t            *GetFirstSequenceAndSequenceCount(uint32_t &count) { count = ii_SequenceCount; return ip_FirstSequence; };
-   
+
    double            GetBabyStepFactor(void) { return id_BabyStepFactor; };
    uint32_t          GetBaseMultipleMulitplier(void) { return ii_BaseMultipleMultiplier; };
    uint32_t          GetPowerResidueLcmMultiplier(void) { return ii_PowerResidueLcmMulitplier; };
    uint32_t          GetLimitBaseMultiplier(void) { return ii_LimitBaseMultiplier; };
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          GetMaxGpuFactors(void) { return ii_MaxGpuFactors; };
    uint32_t          GetKernelCount(void) { return ii_KernelCount; };
@@ -69,9 +69,9 @@ public:
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested);
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
@@ -84,57 +84,57 @@ private:
    uint32_t          ii_LimitBaseMultiplier;
 
    seq_t            *ip_FirstSequence;
-   AbstractSequenceHelper   *ip_AppHelper; 
-   
+   AbstractSequenceHelper   *ip_AppHelper;
+
    bool              ib_SetLegengreBytes;
    uint64_t          il_LegendreTableBytes;
    std::string       is_LegendreDirectoryName;
    std::string       is_SequencesToRemove;
-   
+
    bool              LoadSequencesFromFile(char *fileName);
    void              ValidateAndAddNewSequence(char *arg);
 
    void              MakeSubsequences(bool newSieve, uint64_t largestPrimeTested);
-   
+
    void              RemoveSequences(void);
    void              RemoveSequence(const char *sequence);
    void              RemoveSequence(uint64_t k, uint32_t b, int64_t c, uint32_t d);
-   
+
    void              RemoveSequencesWithNoTerms(void);
    void              CheckForLegendreSupport(void);
-      
+
    uint32_t          WriteABCDTermsFile(seq_t *seqPtr, uint64_t maxPrime, FILE *termsFile);
    uint32_t          WriteABCTermsFile(seq_t *seqPtr, uint64_t maxPrime, FILE *termsFile);
    uint32_t          WriteBoincTermsFile(seq_t *seqPtr, uint64_t maxPrime, FILE *termsFile);
    uint32_t          WriteABCNumberPrimesTermsFile(seq_t *seqPtr, uint64_t maxPrime, FILE *termsFile, bool allSequencesHaveDEqual1);
-   
+
    bool              IsPrime(uint64_t p, seq_t *seqPtr, uint32_t n);
    void              VerifyFactor(uint64_t theFactor, seq_t *seqPtr, uint32_t n);
-   
+
    uint64_t          GetSquareFreeFactor(uint64_t n, std::vector<uint64_t> primes);
-   
+
    bool              ib_CanUseCIsOneLogic;
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    bool              ib_UseGPUWorkersUponRebuild;
 #endif
-   
+
    uint64_t          il_SmallPrimeSieveLimit;
 
    bool              ib_HaveNewSequences;
    bool              ib_HaveSingleC;
    format_t          it_Format;
-   
+
    uint32_t          ii_Base;
    uint32_t          ii_SquareFreeB;    // product of squery free factors of the base
-   
+
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
    uint64_t          il_MaxK;
    uint64_t          il_MaxAbsC;
 
    uint32_t          ii_SequenceCount;
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          ii_GpuFactorDensity;
    uint32_t          ii_MaxGpuFactors;

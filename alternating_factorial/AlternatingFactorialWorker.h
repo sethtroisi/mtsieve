@@ -29,7 +29,7 @@ protected:
 
 private:
    AlternatingFactorialApp      *ip_AlternatingFactorialApp;
-   
+
    void              ExtractFactors(uint64_t p);
 };
 

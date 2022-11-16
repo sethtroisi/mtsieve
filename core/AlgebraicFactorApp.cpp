@@ -41,15 +41,15 @@ void  AlgebraicFactorApp::GetRoot(uint64_t theNumber, uint64_t *root, uint32_t *
       rf_power[idx] = 0;
 
    rf_count = GetFactorList(theNumber, rf_factor, rf_power);
-   
+
    rpow = rf_power[0];
    for (idx=1; idx<rf_count; idx++)
       rpow = gcd32(rpow, rf_power[idx]);
-      
+
    r = 1;
    for (idx=0; idx<rf_count; idx++)
       r *= (uint32_t) pow((double) rf_factor[idx], (double) (rf_power[idx] / rpow));
-   
+
    *root = r;
    *power = rpow;
 }
@@ -60,15 +60,15 @@ uint32_t AlgebraicFactorApp::GetFactorList(uint64_t theNumber, uint64_t *factorL
    uint32_t  power;
    uint64_t  thePrime;
 
-   std::vector<uint64_t>::iterator it = iv_SmallPrimes.begin(); 
-         
+   std::vector<uint64_t>::iterator it = iv_SmallPrimes.begin();
+
    // Get the prime factorization of the input number.  Note that since the vector only has
    // 100000 primes, some numbers might not get fully factored.
    while (it != iv_SmallPrimes.end())
    {
       thePrime = *it;
       it++;
-      
+
       power = 0;
       while (theNumber % thePrime == 0)
       {
@@ -81,7 +81,7 @@ uint32_t AlgebraicFactorApp::GetFactorList(uint64_t theNumber, uint64_t *factorL
          factorList[distinctFactors] = thePrime;
          powerList[distinctFactors] = power;
          distinctFactors++;
-         
+
          if (theNumber < thePrime * thePrime)
             break;
       }
@@ -104,13 +104,13 @@ bool     AlgebraicFactorApp::IsGfnOrMersenneForm(uint64_t k, uint32_t base, int3
 {
    uint64_t  broot, kroot;
    uint32_t  bpower, kpower;
-   
+
    GetRoot(base, &broot, &bpower);
-      
+
    // Needs to be k*b^n-1 or k*b^n+1
    if (c != -1 && c != 1)
       return false;
-   
+
    // If c = -1, then b must be 2^g for some g
    if (c == -1 && broot != 2)
       return false;
@@ -118,11 +118,11 @@ bool     AlgebraicFactorApp::IsGfnOrMersenneForm(uint64_t k, uint32_t base, int3
    if (k > 1)
    {
       GetRoot(k, &kroot, &kpower);
-   
+
       // If c = -1, then k must be 2^f for some f
       if (c == -1 && kroot != 2)
          return false;
-      
+
       // If c = +1, then k and b must have the same root
       if (c == +1 && broot != kroot)
          return false;

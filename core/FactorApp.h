@@ -24,30 +24,30 @@ typedef struct {
 } factor_report_t;
 
 class FactorApp : public App
-{  
+{
 public:
    FactorApp(void);
    ~FactorApp(void);
-   
+
 protected:
    virtual void      ProcessInputTermsFile(bool haveBitMap) = 0;
    virtual bool      IsWritingOutputTermsFile(void) = 0;
    virtual void      WriteOutputTermsFile(uint64_t largestPrime) = 0;
    virtual bool      ApplyFactor(uint64_t theFactor, const char *term) = 0;
    virtual void      GetExtraTextForSieveStartedMessage(char *extraText) = 0;
-   
+
    void              ParentHelp(void);
    void              ParentAddCommandLineOptions(std::string &shortOpts, struct option *longOpts);
    parse_t           ParentParseOption(int opt, char *arg, const char *source);
    void              ParentValidateOptions(void);
-   
+
    void              LogStartSievingMessage(void);
    void              Finish(const char *finishMethod, uint64_t elapsedTimeUS, uint64_t largestPrimeTested, uint64_t primesTested);
    void              GetReportStats(char *reportStats, double cpuUtilization);
    bool              StripCRLF(char *line);
-   
+
    void              ResetFactorStats(void);
-   
+
    // Only call this if ip_FactorAppLock has been locked, then release upon return
 #ifdef __MINGW_PRINTF_FORMAT
    void              LogFactor(uint64_t p, const char *fmt, ...) __attribute__ ((format (__MINGW_PRINTF_FORMAT, 3, 4)));
@@ -56,29 +56,29 @@ protected:
    void              LogFactor(uint64_t p, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
    void              LogFactor(char *factor, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 #endif
-   
+
    bool              ib_ApplyAndExit;
-   
+
    SharedMemoryItem *ip_FactorAppLock;
-   
+
    // These are only updated by the child class, but any reads/writes of these
-   // variables must use ip_FactorAppLock to lock them. 
+   // variables must use ip_FactorAppLock to lock them.
    uint64_t          il_FactorCount;
    uint64_t          il_PreviousFactorCount;
    uint64_t          il_TermCount;
-   
+
    std::string       is_InputTermsFileName;
    std::string       is_InputFactorsFileName;
    std::string       is_OutputTermsFileName;
    std::string       is_OutputFactorsFileName;
-   
+
 private:
    bool              BuildFactorsPerSecondRateString(uint32_t currentStatusEntry, double cpuUtilization, char *factoringRate);
    bool              BuildSecondsPerFactorRateString(uint32_t currentStatusEntry, double cpuUtilization, char *factoringRate);
-   
+
    FILE             *if_FactorFile;
    time_t            it_CheckpointTime;
-   
+
    // I could use a vector, but I'm lazy
    factor_report_t   ir_ReportStatus[MAX_FACTOR_REPORT_COUNT];
    uint32_t          ii_NextStatusEntry;

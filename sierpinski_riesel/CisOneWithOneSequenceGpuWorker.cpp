@@ -21,9 +21,9 @@ CisOneWithOneSequenceGpuWorker::CisOneWithOneSequenceGpuWorker(uint32_t myId, Ap
    ib_GpuWorker = true;
    ip_FirstSequence = appHelper->GetFirstSequenceAndSequenceCount(ii_SequenceCount);
    ip_Subsequences = appHelper->GetSubsequences(ii_SubsequenceCount);
-   
+
    ip_CisOneHelper = (CisOneWithOneSequenceHelper *) appHelper;
-   
+
    ii_MaxGpuFactors = ip_SierpinskiRieselApp->GetMaxGpuFactors();
    ii_ChunksPerGpuWorker = ip_SierpinskiRieselApp->GetChunksPerGpuWorker();
 }
@@ -33,17 +33,17 @@ void  CisOneWithOneSequenceGpuWorker::Prepare(uint64_t largestPrimeTested, uint3
    char        defines[20][50];
    const char *preKernelSources[20];
    uint32_t    defineCount = 0, idx;
-   
+
    ii_BestQ = bestQ;
    legendre_t *legendrePtr = &ip_CisOneHelper->GetLegendre()[0];
-   
+
    uint32_t sieveLow = ii_MinN / ii_BestQ;
    uint32_t elements = ip_CisOneHelper->GetMaxBabySteps();
    uint32_t hsize;
-   
+
    if (HASH_MINIMUM_ELTS > elements)
       elements = HASH_MINIMUM_ELTS;
-      
+
    for (hsize = 1<<HASH_MINIMUM_SHIFT; hsize < elements/DEFAULT_HASH_MAX_DENSITY; )
       hsize <<= 1;
 
@@ -67,27 +67,27 @@ void  CisOneWithOneSequenceGpuWorker::Prepare(uint64_t largestPrimeTested, uint3
       sprintf(defines[defineCount++], "#define HAVE_LEGENDRE_TABLES");
       sprintf(defines[defineCount++], "#define LEGENDRE_MOD %u\n", legendrePtr->mod);
    }
-      
+
    if (ip_FirstSequence->nParity == SP_MIXED)
       sprintf(defines[defineCount++], "#define HAVE_MIXED_PARITY");
 
    for (idx=0; idx<defineCount; idx++)
       preKernelSources[idx] = defines[idx];
-   
+
    preKernelSources[idx] = 0;
 
    ip_Kernel = (GpuKernel *) ip_App->GetGpuDevice()->CreateKernel("cisonesingle_kernel", cisonesingle_kernel, preKernelSources);
 
    ip_SierpinskiRieselApp->SetGpuWorkGroupSize(ip_Kernel->GetWorkGroupSize());
-   
+
    ii_PrimesInList = ip_SierpinskiRieselApp->GetGpuPrimesPerWorker() * ii_ChunksPerGpuWorker;
-   
+
    ii_KernelWorkSize = ii_PrimesInList / ii_ChunksPerGpuWorker;
-   
+
    il_Primes = (uint64_t *) ip_Kernel->AddCpuArgument("primes", sizeof(uint64_t), ii_KernelWorkSize);
-   
+
    if (legendrePtr->haveMap)
-   {      
+   {
       if (ip_FirstSequence->nParity == SP_MIXED)
       {
          ii_DualParityMapM1 = (uint8_t *) ip_Kernel->AddCpuArgument("dualParityMapM1", sizeof(uint8_t), legendrePtr->mapSize, legendrePtr->dualParityMapM1);
@@ -98,7 +98,7 @@ void  CisOneWithOneSequenceGpuWorker::Prepare(uint64_t largestPrimeTested, uint3
          ii_SingleParityMap = (uint8_t *) ip_Kernel->AddCpuArgument("oneParityMap", sizeof(uint8_t), legendrePtr->mapSize, legendrePtr->oneParityMap);
       }
    }
-     
+
    ii_BabySteps   =  (uint32_t *) ip_Kernel->AddCpuArgument("babySteps", sizeof(uint32_t), ii_SubsequenceCount);
    ii_GiantSteps  =  (uint32_t *) ip_Kernel->AddCpuArgument("giantSteps", sizeof(uint32_t), ii_SubsequenceCount);
 
@@ -113,7 +113,7 @@ void  CisOneWithOneSequenceGpuWorker::Prepare(uint64_t largestPrimeTested, uint3
 
    ii_FactorCount = (uint32_t *) ip_Kernel->AddSharedArgument("factorCount", sizeof(uint32_t), 1);
    il_FactorList  = (uint64_t *) ip_Kernel->AddGpuArgument("factorList", sizeof(uint64_t), 2*ii_MaxGpuFactors);
-   
+
    for (uint32_t ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
    {
       ii_BabySteps[ssIdx]  = ip_Subsequences[ssIdx].babySteps;
@@ -127,7 +127,7 @@ void  CisOneWithOneSequenceGpuWorker::Prepare(uint64_t largestPrimeTested, uint3
 }
 
 void  CisOneWithOneSequenceGpuWorker::CleanUp(void)
-{   
+{
    delete ip_Kernel;
 }
 
@@ -140,20 +140,20 @@ void  CisOneWithOneSequenceGpuWorker::TestMegaPrimeChunk(void)
    for (uint32_t x=0; x<ii_ChunksPerGpuWorker; x++)
    {
       memcpy(il_Primes, &il_PrimeList[ii_KernelWorkSize * x], ii_KernelWorkSize * sizeof(uint64_t));
-      
+
       ii_FactorCount[0] = 0;
 
       ip_Kernel->Execute(ii_KernelWorkSize);
-      
+
       for (uint32_t ii=0; ii<ii_FactorCount[0]; ii++)
       {
          idx = ii*2;
 
          n = (uint32_t) il_FactorList[idx+0];
          prime = il_FactorList[idx+1];
-      
+
          ip_SierpinskiRieselApp->ReportFactor(prime, ip_FirstSequence, n, true);
-         
+
          if ((ii+1) == ii_MaxGpuFactors)
             break;
       }

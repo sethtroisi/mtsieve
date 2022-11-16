@@ -28,23 +28,23 @@ public:
    void              Prepare(uint64_t largestPrimeTested, uint32_t bestQ);
    void              TestMegaPrimeChunk(void);
    void              TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
-   
+
    void              CleanUp(void);
 
 protected:
    CisOneWithOneSequenceHelper *ip_CisOneHelper;
-   
+
    uint32_t          ii_MaxGpuFactors;
    uint32_t          ii_ChunksPerGpuWorker;
    uint32_t          ii_KernelWorkSize;
-   
+
    GpuKernel        *ip_Kernel;
-   
+
    uint64_t         *il_Primes;
    uint8_t          *ii_DualParityMapM1;
    uint8_t          *ii_DualParityMapP1;
    uint8_t          *ii_SingleParityMap;
-   
+
    uint32_t         *ii_BabySteps;
    uint32_t         *ii_GiantSteps;
 
@@ -53,14 +53,14 @@ protected:
 
    uint32_t         *ii_QIndices;
    uint16_t         *ii_Qs;
-   
+
    uint32_t         *ii_LadderIndices;
    uint16_t         *ii_Ladders;
-   
+
    uint32_t         *ii_FactorCount;
    uint64_t         *il_FactorList;
-   
-   
+
+
 };
 
 #endif

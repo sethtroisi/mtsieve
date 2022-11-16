@@ -44,12 +44,12 @@ MultiFactorialApp::MultiFactorialApp() : FactorApp()
    ii_MinN = 0;
    ii_MaxN = 0;
    ii_CpuWorkSize = 50000;
-   
+
    // We'll remove all even terms manually
    SetAppMinPrime(3);
 
    SetAppMaxPrime(PMAX_MAX_52BIT);
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    ii_MaxGpuSteps = 100000;
    ii_MaxGpuFactors = GetGpuWorkGroups() * 10;
@@ -82,7 +82,7 @@ void  MultiFactorialApp::AddCommandLineOptions(std::string &shortOpts, struct op
 
 #if defined(USE_OPENCL) || defined(USE_METAL)
    shortOpts += "S:M:";
-   
+
    AppendLongOpt(longOpts, "maxsteps",       required_argument, 0, 'S');
    AppendLongOpt(longOpts, "maxfactors",     required_argument, 0, 'M');
 #endif
@@ -100,11 +100,11 @@ parse_t MultiFactorialApp::ParseOption(int opt, char *arg, const char *source)
       case 'm':
          status = Parser::Parse(arg, 1, 1000000000, ii_MultiFactorial);
          break;
-         
+
       case 'n':
          status = Parser::Parse(arg, 1, 1000000000, ii_MinN);
          break;
-         
+
       case 'N':
          status = Parser::Parse(arg, 1, 1000000000, ii_MaxN);
          break;
@@ -113,7 +113,7 @@ parse_t MultiFactorialApp::ParseOption(int opt, char *arg, const char *source)
       case 'S':
          status = Parser::Parse(arg, 1, 1000000000, ii_MaxGpuSteps);
          break;
-         
+
       case 'M':
          status = Parser::Parse(arg, 10, 1000000, ii_MaxGpuFactors);
          break;
@@ -124,14 +124,14 @@ parse_t MultiFactorialApp::ParseOption(int opt, char *arg, const char *source)
 }
 
 void MultiFactorialApp::ValidateOptions(void)
-{ 
+{
    if (is_InputTermsFileName.length() > 0)
    {
       ProcessInputTermsFile(false);
-   
+
       iv_MinusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_MinusTerms.begin(), iv_MinusTerms.end(), false);
-      
+
       iv_PlusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_PlusTerms.begin(), iv_PlusTerms.end(), false);
 
@@ -139,7 +139,7 @@ void MultiFactorialApp::ValidateOptions(void)
       ProcessInputTermsFile(true);
    }
    else
-   {        
+   {
       if (ii_MinN <= ii_MultiFactorial)
          FatalError("The value for -n must be greater than the value for -m");
 
@@ -148,10 +148,10 @@ void MultiFactorialApp::ValidateOptions(void)
 
       iv_MinusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_MinusTerms.begin(), iv_MinusTerms.end(), true);
-      
+
       iv_PlusTerms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_PlusTerms.begin(), iv_PlusTerms.end(), true);
-      
+
       il_TermCount = 2 * (ii_MaxN - ii_MinN + 1);
 
       // For even multi-factorials, remove all even terms
@@ -160,13 +160,13 @@ void MultiFactorialApp::ValidateOptions(void)
          uint32_t n = ii_MinN;
          if (n % 2 == 0)
             n++;
-         
+
          while (n <= ii_MaxN)
          {
             iv_PlusTerms[BIT(n)] = false;
             iv_MinusTerms[BIT(n)] = false;
             il_TermCount -= 2;
-            
+
             n += 2;
          }
       }
@@ -175,17 +175,17 @@ void MultiFactorialApp::ValidateOptions(void)
    if (is_OutputTermsFileName.length() == 0)
    {
       char fileName[50];
-      
+
       if (ii_MultiFactorial == 1)
          sprintf(fileName, "factorial.pfgw");
       else
          sprintf(fileName, "mf_%d.pfgw", ii_MultiFactorial);
-      
+
       is_OutputTermsFileName = fileName;
    }
 
    SetMinGpuPrime(ii_MaxN + 1);
- 
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    ii_MaxGpuFactors = GetGpuWorkGroups() * (ii_MaxN - ii_MinN) / 100;
 #endif
@@ -203,7 +203,7 @@ Worker *MultiFactorialApp::CreateWorker(uint32_t id, bool gpuWorker, uint64_t la
    if (gpuWorker)
       return new MultiFactorialGpuWorker(id, this);
 #endif
-   
+
    return new MultiFactorialWorker(id, this);
 }
 
@@ -225,10 +225,10 @@ terms_t *MultiFactorialApp::GetTerms(void)
    for (uint32_t mf=1; mf<=ii_MultiFactorial; mf++)
    {
       uint64_t idx = 0;
-      
+
       terms[mf-1].mf = mf;
       terms[mf-1].termList = (uint64_t *) xmalloc(ii_MinN * sizeof(uint64_t)/2);
-      
+
       terms[mf-1].termList[idx] = 1;
       for (uint32_t n=mf; n<ii_MinN; n+=mf)
       {
@@ -242,13 +242,13 @@ terms_t *MultiFactorialApp::GetTerms(void)
 
          terms[mf-1].maxNForTerm = n;
          terms[mf-1].termList[idx] *= n;
-         
+
          bigN = n;
          if ((bigN * bigN) > bigMinN)
             break;
       }
    }
-   
+
    return terms;
 }
 
@@ -265,7 +265,7 @@ void MultiFactorialApp::ProcessInputTermsFile(bool haveBitMap)
 
    if (fgets(buffer, sizeof(buffer), fPtr) == NULL)
       FatalError("No data in input file %s", is_InputTermsFileName.c_str());
-   
+
   if (memcmp(buffer, "ABC $a#!$b", 9) && memcmp(buffer, "ABC $a!+$b", 10) &&
       sscanf(buffer, "ABC $a!%u$b", &ii_MultiFactorial) != 1)
       FatalError("Line 1 is malformed in input file %s", is_InputTermsFileName.c_str());
@@ -277,18 +277,18 @@ void MultiFactorialApp::ProcessInputTermsFile(bool haveBitMap)
 
    if (!haveBitMap)
       ii_MinN = ii_MaxN = 0;
-   
+
    while (fgets(buffer, sizeof(buffer), fPtr) != NULL)
    {
       if (!StripCRLF(buffer))
          continue;
-   
+
       if (sscanf(buffer, "%d %d", &n, &c) != 2)
          FatalError("Line %s is malformed", buffer);
 
       if (!ii_MaxN)
          ii_MinN = ii_MaxN = n;
-            
+
       if (haveBitMap)
       {
          if (c == -1)
@@ -296,7 +296,7 @@ void MultiFactorialApp::ProcessInputTermsFile(bool haveBitMap)
             iv_MinusTerms[n - ii_MinN] = true;
             il_TermCount++;
          }
-         
+
          if (c == +1)
          {
             iv_PlusTerms[n - ii_MinN] = true;
@@ -317,35 +317,35 @@ bool MultiFactorialApp::ApplyFactor(uint64_t theFactor, const char *term)
 {
    uint32_t n, mf;
    int32_t  c;
-   
+
    if (sscanf(term, "%u!%u%d", &n, &mf, &c) != 3)
       FatalError("Could not parse term %s", term);
 
    if (mf != ii_MultiFactorial)
       FatalError("Expected multifactorial of %u in factor, but found %u", ii_MultiFactorial, mf);
-   
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-     
+
    VerifyFactor(theFactor, n, c);
-   
+
    uint64_t bit = BIT(n);
-   
+
    // No locking is needed because the Workers aren't running yet
    if (c == -1 && iv_MinusTerms[bit])
-   {	
+   {
       iv_MinusTerms[bit] = false;
       il_TermCount--;
       return true;
    }
 
    if (c == +1 && iv_PlusTerms[bit])
-   {	
+   {
       iv_PlusTerms[bit] = false;
       il_TermCount--;
       return true;
    }
-      
+
    return false;
 }
 
@@ -358,7 +358,7 @@ void MultiFactorialApp::WriteOutputTermsFile(uint64_t largestPrime)
       FatalError("Unable to open input file %s", is_OutputTermsFileName.c_str());
 
    ip_FactorAppLock->Lock();
-   
+
    fprintf(termsFile, "ABC $a!%d$b // Sieved to %" PRIu64"\n", ii_MultiFactorial, largestPrime);
 
    for (uint32_t n=ii_MinN; n<=ii_MaxN; n++)
@@ -377,7 +377,7 @@ void MultiFactorialApp::WriteOutputTermsFile(uint64_t largestPrime)
    }
 
    fclose(termsFile);
-   
+
    if (termsCounted != il_TermCount)
       FatalError("Something is wrong.  Counted terms (%" PRIu64") != expected terms (%" PRIu64")", termsCounted, il_TermCount);
 
@@ -396,23 +396,23 @@ bool MultiFactorialApp::ReportFactor(uint64_t theFactor, uint32_t n, int32_t c)
 {
    uint32_t bit;
    bool     newFactor = false;
-   
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-   
+
    VerifyFactor(theFactor, n, c);
-   
+
    ip_FactorAppLock->Lock();
 
    bit = BIT(n);
-   
+
    if (c == -1 && iv_MinusTerms[bit])
    {
       newFactor = true;
       iv_MinusTerms[bit] = false;
       il_TermCount--;
       il_FactorCount++;
-      
+
       LogFactor(theFactor, "%u!%u-1", n, ii_MultiFactorial);
    }
 
@@ -422,12 +422,12 @@ bool MultiFactorialApp::ReportFactor(uint64_t theFactor, uint32_t n, int32_t c)
       iv_PlusTerms[bit] = false;
       il_TermCount--;
       il_FactorCount++;
-      
+
       LogFactor(theFactor, "%u!%u+1", n, ii_MultiFactorial);
    }
-   
+
    ip_FactorAppLock->Release();
-   
+
    return newFactor;
 }
 
@@ -437,21 +437,21 @@ void  MultiFactorialApp::VerifyFactor(uint64_t theFactor, uint32_t n, int32_t c)
    bool     termIsPrime = true;
    bool     isValid = false;
    char     buffer[100];
-   
+
    uint64_t rem = 1, nextRem;
-   
+
    while (termIsPrime && currN > 1)
    {
       nextRem = (rem * currN);
-      
+
       // If rem * currN > UINT64_MAX, then it will truncate the result and
       // if truncated, then the term cannot be prime.
       if (nextRem < rem)
          termIsPrime = false;
-      
+
       if (nextRem > theFactor + 1)
          termIsPrime = false;
-      
+
       rem = nextRem;
       currN -= ii_MultiFactorial;
    }
@@ -462,11 +462,11 @@ void  MultiFactorialApp::VerifyFactor(uint64_t theFactor, uint32_t n, int32_t c)
          sprintf(buffer, "%u!%+d is prime! (%" PRId64")", n, c, theFactor);
       else
          sprintf(buffer, "%u!%u%+d is prime! (%" PRId64")", n, ii_MultiFactorial, c, theFactor);
-         
+
       WriteToConsole(COT_OTHER, "%s", buffer);
 
       WriteToLog("%s", buffer);
-      
+
       return;
    }
 
@@ -474,7 +474,7 @@ void  MultiFactorialApp::VerifyFactor(uint64_t theFactor, uint32_t n, int32_t c)
       currN = ii_MultiFactorial;
    else
       currN = (n % ii_MultiFactorial);
-  
+
    MpArith  mp(theFactor);
    MpRes    pOne = mp.one();
    MpRes    mOne = mp.sub(mp.zero(), pOne);
@@ -486,20 +486,20 @@ void  MultiFactorialApp::VerifyFactor(uint64_t theFactor, uint32_t n, int32_t c)
    while (currN < n)
    {
       currN += ii_MultiFactorial;
-      
+
       ri = mp.add(ri, resMf);
       rf = mp.mul(rf, ri);
    }
 
    if (c == -1)
       isValid = (rf == pOne);
-      
+
    if (c == +1)
       isValid = (rf == mOne);
-      
+
    if (isValid)
       return;
-   
+
    if (ii_MultiFactorial == 1)
       sprintf(buffer, "%" PRIu64" is not a factor of not a factor of %u!%+d", theFactor, n, c);
    else

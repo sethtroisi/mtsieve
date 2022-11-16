@@ -1,7 +1,7 @@
 /* XYYXApp.h -- (C) Mark Rodenkirch, May 2014
 
    This class inherits from App.h and has the implementation for this project
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
@@ -55,9 +55,9 @@ public:
    void              ValidateOptions(void);
    bool              ApplyFactor(uint64_t theFactor, const char *term);
    void              GetExtraTextForSieveStartedMessage(char *extraText);
-   
+
    bool              ReportFactor(uint64_t theFactor, uint32_t x, uint32_t y);
-   
+
    uint32_t          GetMinX(void) { return ii_MinX; };
    uint32_t          GetMaxX(void) { return ii_MaxX; };
    uint32_t          GetMinY(void) { return ii_MinY; };
@@ -71,11 +71,11 @@ public:
    bool              IsMinus(void) { return ib_IsMinus; };
 
    void              GetTerms(uint32_t fpuRemaindersCount, uint32_t avxRemaindersCount, bases_t *bases);
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          GetNumberOfGroups(void);
    uint32_t          GetGroupedTerms(uint32_t *terms);
-   
+
    uint32_t          GetMaxGpuSteps(void) { return ii_MaxGpuSteps; };
    uint32_t          GetMaxGpuFactors(void) { return ii_MaxGpuFactors; };
 #endif
@@ -83,11 +83,11 @@ public:
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested) {};
-   
+
    Worker           *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
@@ -95,9 +95,9 @@ protected:
 private:
    void              SetInitialTerms(void);
    void              VerifyFactor(uint64_t theFactor, uint32_t x, uint32_t y);
-   
+
    std::vector<bool> iv_Terms;
-   
+
    bool              ib_UseAvx;
    bool              ib_IsPlus;
    bool              ib_IsMinus;

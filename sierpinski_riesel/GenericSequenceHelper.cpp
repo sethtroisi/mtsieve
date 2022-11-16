@@ -29,14 +29,14 @@ Worker   *GenericSequenceHelper::CreateWorker(uint32_t id, bool gpuWorker, uint6
 
    // Note that GenericWorker inherits from Worker.  This will not
    // only create the worker, but also start it.
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    if (gpuWorker)
       theWorker = new GenericGpuWorker(id, ip_App, this);
    else
 #endif
       theWorker = new GenericWorker(id, ip_App, this);
-      
+
    theWorker->Prepare(largestPrimeTested, ii_BestQ);
 
    return theWorker;
@@ -51,7 +51,7 @@ uint32_t    GenericSequenceHelper::FindBestQ(uint32_t &expectedSubsequences)
    seq_t        *seqPtr;
 
    k = ForEachDivisor(Q, R, S, true);
-   
+
    R.resize(Q, false);
    S = (choice_bc_t *) xmalloc(k*sizeof(choice_bc_t));
 
@@ -63,27 +63,27 @@ uint32_t    GenericSequenceHelper::FindBestQ(uint32_t &expectedSubsequences)
    {
       for (j=0; j<Q; j++)
          R[j] = 0;
-      
+
       bit = NBIT(ii_MinN);
 
       for (n=ii_MinN; n<=ii_MaxN; n++)
       {
          if (seqPtr->nTerms[bit])
             R[n%Q] = 1;
-         
+
          bit++;
       }
-      
+
       ForEachDivisor(Q, R, S, false);
-      
+
       seqPtr = (seq_t *) seqPtr->next;
    } while (seqPtr != NULL);
-   
+
    j = 0;
    for (i = 0; i < k; i++)
    {
       S[i].work = EstimateWork(S[i].div, S[i].subseqs);
-      
+
       if (S[i].work < S[j].work)
          j = i;
    }
@@ -92,7 +92,7 @@ uint32_t    GenericSequenceHelper::FindBestQ(uint32_t &expectedSubsequences)
    expectedSubsequences = S[j].subseqs;
 
    xfree(S);
- 
+
    return bestQ;
 }
 
@@ -110,13 +110,13 @@ uint32_t GenericSequenceHelper::ForEachDivisor(uint32_t Q, std::vector<bool> R, 
 
    if (firstTime)
       return t;
-   
+
    for (i = 0; i < t; i++)
    {
       for (j = 0; j < k; A[j++] = 0)
          if (++A[j] <= M[j])
             break;
-         
+
       for (j = 0, d = 1; j < k; j++)
          d *= pow32(P[j], A[j]);
 
@@ -138,7 +138,7 @@ uint32_t    GenericSequenceHelper::FindMultiplicities(uint32_t n, uint32_t *P, u
    {
       for (m = 0; n % q == 0; m++)
          n /= q;
-      
+
       if (m > 0)
          P[i] = q, M[i] = m, i++;
    }
@@ -150,15 +150,15 @@ uint32_t    GenericSequenceHelper::FindMultiplicities(uint32_t n, uint32_t *P, u
 #define GIANT_WORK   1.0    // 1 mulmod, 1 lookup
 #define EXP_WORK     0.7    // 1 mulmod
 #define SUBSEQ_WORK  1.4    // 1 mulmod, 1 lookup (giant step 0)
-                               
+
 double    GenericSequenceHelper::EstimateWork(uint32_t Q, uint32_t s)
 {
    uint32_t babySteps, giantSteps;
    double   work;
-   
+
    ChooseSteps(Q, s, babySteps, giantSteps);
 
    work = babySteps*BABY_WORK + s*(giantSteps-1)*GIANT_WORK + Q*EXP_WORK + s*SUBSEQ_WORK;
-      
+
    return work;
 }

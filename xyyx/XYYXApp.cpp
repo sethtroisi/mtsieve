@@ -49,7 +49,7 @@ XYYXApp::XYYXApp(void) : FactorApp()
    ib_IsMinus = false;
    SetAppMinPrime(3);
    ib_UseAvx = true;
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    ii_MaxGpuSteps = 100000;
    ii_MaxGpuFactors = GetGpuWorkGroups() * 100;
@@ -84,7 +84,7 @@ void  XYYXApp::AddCommandLineOptions(string &shortOpts, struct option *longOpts)
    AppendLongOpt(longOpts, "sign",              required_argument, 0, 's');
    AppendLongOpt(longOpts, "disableavx",        no_argument, 0, 'D');
    AppendLongOpt(longOpts, "sign",              required_argument, 0, 's');
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    AppendLongOpt(longOpts, "steps",             required_argument, 0, 'S');
    AppendLongOpt(longOpts, "maxfactors",        required_argument, 0, 'M');
@@ -108,7 +108,7 @@ parse_t XYYXApp::ParseOption(int opt, char *arg, const char *source)
       case 'X':
          status = Parser::Parse(arg, 1, 1000000000, ii_MaxX);
          break;
-		 
+
       case 'y':
          status = Parser::Parse(arg, 2, 1000000000, ii_MinY);
          break;
@@ -116,29 +116,29 @@ parse_t XYYXApp::ParseOption(int opt, char *arg, const char *source)
       case 'Y':
          status = Parser::Parse(arg, 1, 1000000000, ii_MaxY);
          break;
-		
+
       case 'z':
          status = Parser::Parse(arg, 1, 1000000000, ii_SplitYCount);
          break;
-         
+
       case 'Z':
          status = Parser::Parse(arg, 1, 1000000000, ii_SplitYValue);
          break;
-         
+
       case 'D':
          ib_UseAvx = false;
          status = P_SUCCESS;
          break;
-         
+
       case 's':
          char value;
-         
+
          status = Parser::Parse(arg, "+-", value);
-         
+
          ib_IsPlus = (value == '+');
          ib_IsMinus = (value == '-');
          break;
-         
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
       case 'S':
          status = Parser::Parse(arg, 1, 1000000000, ii_MaxGpuSteps);
@@ -161,14 +161,14 @@ void XYYXApp::ValidateOptions(void)
    if (is_InputTermsFileName.length() > 0)
    {
       ProcessInputTermsFile(false);
-      
+
       il_TermCount = GetXCount() * GetYCount();
-      
+
       iv_Terms.resize(il_TermCount);
       std::fill(iv_Terms.begin(), iv_Terms.end(), false);
-      
+
       il_TermCount = 0;
-      
+
       ProcessInputTermsFile(true);
    }
    else
@@ -178,7 +178,7 @@ void XYYXApp::ValidateOptions(void)
 
       if (ii_MinX == 0)
          FatalError("min x has not been specified");
-	  
+
       if (ii_MaxX == 0)
          FatalError("max x has not been specified");
 
@@ -197,22 +197,22 @@ void XYYXApp::ValidateOptions(void)
       // Force x > y due to how searches are typically executed
       if (ib_IsPlus && ii_MaxY > ii_MaxX)
          FatalError("for + max x must be greater than max y");
-      
+
       // Force x < y because we want x^y > y^x
       if (ib_IsMinus && ii_MaxY < ii_MaxX)
          FatalError("for - max x must be less than max y");
 
       il_TermCount = GetXCount() * GetYCount();
-      
+
       iv_Terms.resize(il_TermCount);
       std::fill(iv_Terms.begin(), iv_Terms.end(), false);
-         
+
       SetInitialTerms();
    }
-   
+
    if (ib_IsPlus && ib_IsMinus)
       FatalError("cannot support both + and - forms concurrently");
-      
+
    FactorApp::ParentValidateOptions();
 }
 
@@ -220,13 +220,13 @@ Worker *XYYXApp::CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrime
 {
    Worker *theWorker;
 
-#if defined(USE_OPENCL) || defined(USE_METAL)  
+#if defined(USE_OPENCL) || defined(USE_METAL)
    if (gpuWorker)
       theWorker = new XYYXGpuWorker(id, this);
    else
 #endif
       theWorker = new XYYXWorker(id, this);
-   
+
    return theWorker;
 }
 
@@ -237,7 +237,7 @@ void XYYXApp::ProcessInputTermsFile(bool haveBitMap)
    uint32_t x, y;
    uint8_t  sign;
    uint64_t minPrime;
-   
+
    if (!fPtr)
       FatalError("Unable to open input file %s", is_InputTermsFileName.c_str());
 
@@ -249,10 +249,10 @@ void XYYXApp::ProcessInputTermsFile(bool haveBitMap)
 
    ib_IsPlus = (sign == '+');
    ib_IsMinus = (sign == '-');
-   
+
    if (!ib_IsMinus && !ib_IsPlus)
       FatalError("The sign must be '+' or '-'");
-      
+
    // Reset this
    il_TermCount = 0;
 
@@ -294,32 +294,32 @@ bool XYYXApp::ApplyFactor(uint64_t theFactor, const char *term)
 {
    uint32_t x1, x2, y1, y2;
    uint8_t  c;
-   
+
    if (sscanf(term, "%u^%u%c%u^%u", &x1, &y1, &c, &y2, &x2) != 5)
       FatalError("Could not parse term %s\n", term);
 
    if (x1 != x2)
       FatalError("x values for term %s do not match (%u != %u)\n", term, x1, x2);
-   
+
    if (y1 != y2)
       FatalError("y values for term %s do not match (%u != %u)\n", term, y1, y2);
 
    if (x1 < ii_MinX || x1 > ii_MaxX)
       return false;
-   
+
    if (y1 < ii_MinY || y1 > ii_MaxY)
       return false;
 
    if (ib_IsPlus && c != '+')
       FatalError("+/- for term %s is not the expected value\n", term);
-   
+
    if (ib_IsMinus && c != '-')
       FatalError("+/- for term %s is not the expected value\n", term);
 
    VerifyFactor(theFactor, x1, y1);
 
    uint64_t bit = BIT(x1, y1);
-   
+
    // No locking is needed because the Workers aren't running yet
    if (iv_Terms[bit])
    {
@@ -336,14 +336,14 @@ void XYYXApp::WriteOutputTermsFile(uint64_t largestPrime)
    FILE    *fPtr, *sPtr = NULL;
    uint32_t x, y, bit, yCount;
    uint64_t termsCounted = 0;
-   
+
    ip_FactorAppLock->Lock();
 
    fPtr = fopen(is_OutputTermsFileName.c_str(), "w");
 
    if (!fPtr)
       FatalError("Unable to open input file %s", is_OutputTermsFileName.c_str());
-   
+
    fprintf(fPtr, "ABC $a^$b%c$b^$a // Sieved to %" PRIu64"\n", (ib_IsPlus ? '+' : '-'), largestPrime);
 
    if (ii_SplitYCount > 0 || (ii_SplitYValue >= ii_MinY && ii_SplitYValue < ii_MaxY))
@@ -351,30 +351,30 @@ void XYYXApp::WriteOutputTermsFile(uint64_t largestPrime)
       sPtr = fopen("xyyx_split.pfgw", "w");
       fprintf(sPtr, "ABC $a^$b%c$b^$a // Sieved to %" PRIu64"\n", (ib_IsPlus ? '+' : '-'), largestPrime);
    }
-   
+
    for (x=ii_MinX; x<=ii_MaxX; x++)
    {
       yCount = 0;
-      
+
       for (y=ii_MinY; y<=ii_MaxY; y++)
       {
          bit = BIT(x, y);
-         
+
          if (iv_Terms[bit])
             yCount++;
       }
-      
+
       for (y=ii_MinY; y<=ii_MaxY; y++)
       {
          bit = BIT(x, y);
-         
+
          if (iv_Terms[bit])
          {
             if (yCount <= ii_SplitYCount || y <= ii_SplitYValue)
                fprintf(sPtr, "%u %u\n", x, y);
             else
                fprintf(fPtr, "%u %u\n", x, y);
-            
+
             termsCounted++;
          }
       }
@@ -382,9 +382,9 @@ void XYYXApp::WriteOutputTermsFile(uint64_t largestPrime)
 
    if (sPtr != NULL)
       fclose(sPtr);
-      
+
    fclose(fPtr);
-   
+
    if (termsCounted != il_TermCount)
       FatalError("Something is wrong.  Counted terms (%" PRIu64") != expected terms (%" PRIu64")", termsCounted, il_TermCount);
 
@@ -392,7 +392,7 @@ void XYYXApp::WriteOutputTermsFile(uint64_t largestPrime)
 }
 
 void  XYYXApp::GetExtraTextForSieveStartedMessage(char *extraText)
-{   
+{
    sprintf(extraText, "%d <= x <= %d, %d <= y <= %d",ii_MinX, ii_MaxX, ii_MinY, ii_MaxY);
 }
 
@@ -400,19 +400,19 @@ bool XYYXApp::ReportFactor(uint64_t theFactor, uint32_t x, uint32_t y)
 {
    uint64_t bit;
    bool     removedTerm = false;
-   
+
    if (x < ii_MinX || x > ii_MaxX)
       return false;
-   
+
    if (y < ii_MinY || y > ii_MaxY)
       return false;
-   
+
    VerifyFactor(theFactor, x, y);
-   
+
    ip_FactorAppLock->Lock();
 
    bit = BIT(x, y);
-   
+
    if (iv_Terms[bit])
    {
       iv_Terms[bit] = false;
@@ -421,7 +421,7 @@ bool XYYXApp::ReportFactor(uint64_t theFactor, uint32_t x, uint32_t y)
       removedTerm = true;
       LogFactor(theFactor, "%u^%u%c%u^%u", x, y, (ib_IsPlus ? '+' : '-'), y, x);
    }
-   
+
    ip_FactorAppLock->Release();
 
    return removedTerm;
@@ -431,23 +431,23 @@ void  XYYXApp::VerifyFactor(uint64_t theFactor, uint32_t x, uint32_t y)
 {
    uint64_t xPowY, yPowX;
    bool     isValid = true;
-   
+
    MpArith  mp(theFactor);
    MpRes    resXY = mp.pow(mp.nToRes(x), y);
    MpRes    resYX = mp.pow(mp.nToRes(y), x);
-   
+
    xPowY = mp.resToN(resXY);
    yPowX = mp.resToN(resYX);
-   
+
    if (ib_IsMinus && xPowY != yPowX)
       isValid = false;
-   
+
    if (ib_IsPlus && xPowY + yPowX != theFactor)
       isValid = false;
-   
+
    if (isValid)
       return;
-   
+
    FatalError("%" PRIu64" does not divide %u^%u%c%u^%u", theFactor, x, y, (ib_IsPlus ? '+' : '-'), y, x);
 }
 
@@ -457,7 +457,7 @@ void  XYYXApp::SetInitialTerms(void)
    uint32_t   evenCount = 0;
    uint32_t   commonDivisorCount = 0;
    uint32_t   xGTEy = 0, yGTEx = 0;
-   
+
    // Reset this
    il_TermCount = 0;
 
@@ -473,7 +473,7 @@ void  XYYXApp::SetInitialTerms(void)
             xGTEy++;
             continue;
          }
-         
+
          if (ib_IsPlus && y >= x)
          {
             yGTEx++;
@@ -497,7 +497,7 @@ void  XYYXApp::SetInitialTerms(void)
             if (ib_IsMinus) evenCount++;
             continue;
          }
- 
+
          // If they have a common divisor, then that common divisor will
          // divided x^y+y^x.
          if (gcd32(x, y) > 1)
@@ -508,7 +508,7 @@ void  XYYXApp::SetInitialTerms(void)
          }
 
          bit = BIT(x, y);
-   
+
          if (stillPlus || stillMinus)
          {
             iv_Terms[bit] = true;
@@ -518,12 +518,12 @@ void  XYYXApp::SetInitialTerms(void)
    }
 
    WriteToConsole(COT_OTHER, "Quick elimination of terms info (in order of check):");
-   
+
    if (ib_IsMinus)
       WriteToConsole(COT_OTHER, "    %u because x >= y", xGTEy);
    if (ib_IsPlus)
       WriteToConsole(COT_OTHER, "    %u because y >= x", yGTEx);
-   
+
    WriteToConsole(COT_OTHER, "    %u because the term is even", evenCount);
    WriteToConsole(COT_OTHER, "    %u because x and y have a common divisor", commonDivisorCount);
 }
@@ -541,121 +541,121 @@ void   XYYXApp::GetTerms(uint32_t fpuRemaindersCount, uint32_t avxRemaindersCoun
    base_t     *xPowY, *yPowX;
    powerofx_t *powerOfX;
    powerofy_t *powerOfY;
-   
+
    ip_FactorAppLock->Lock();
 
    bases->xPowY = xPowY = (base_t *) xmalloc((ii_MaxX - ii_MinX + 1) * sizeof(base_t));
-   
+
    for (x=ii_MinX; x<=ii_MaxX; x++)
    {
       powerCount = 0;
-      
+
       for (y=ii_MinY; y<=ii_MaxY; y++)
       {
          bit = BIT(x, y);
-         
+
          if (iv_Terms[bit])
             powerCount++;
       }
-      
+
       xPowY[x - ii_MinX].base = x;
       xPowY[x - ii_MinX].powerCount = powerCount;
-         
+
       if (powerCount > 0)
       {
          xPowY[x - ii_MinX].powerIndices = (uint32_t *) xmalloc((ii_MaxY - ii_MinY + 1) * sizeof(uint32_t));
          xPowY[x - ii_MinX].powersOfX = (powerofx_t *) xmalloc(powerCount * sizeof(powerofx_t));
-         
+
          // Allocate these only once for this x
          if (fpuRemaindersCount > 0)
             fpuRemaindersPtr = (uint64_t *) xmalloc(powerCount * fpuRemaindersCount * sizeof(uint64_t));
-            
+
          if (avxRemaindersCount > 0)
             avxRemaindersPtr = (double *) xmalloc(powerCount * avxRemaindersCount * sizeof(double));
 
          xPowY[x - ii_MinX].fpuRemaindersPtr = fpuRemaindersPtr;
          xPowY[x - ii_MinX].avxRemaindersPtr = avxRemaindersPtr;
-         
+
          powerIndex = 0;
-         
+
          for (y=ii_MinY; y<=ii_MaxY; y++)
          {
             bit = BIT(x, y);
-            
+
             if (iv_Terms[bit])
             {
                xPowY[x - ii_MinX].powerIndices[y - ii_MinY] = powerIndex;
-               
+
                powerOfX = &xPowY[x - ii_MinX].powersOfX[powerIndex];
-               
+
                powerOfX->y = y;
-               
+
                if (fpuRemaindersCount)
                {
                   powerOfX->fpuRemainders = fpuRemaindersPtr;
                   fpuRemaindersPtr += fpuRemaindersCount;
                }
-               
+
                if (avxRemaindersCount)
                {
                   powerOfX->avxRemainders = avxRemaindersPtr;
                   avxRemaindersPtr += avxRemaindersCount;
                }
-               
+
                powerIndex++;
             }
          }
       }
-   }  
+   }
 
    bases->yPowX = yPowX = (base_t *) xmalloc((ii_MaxY - ii_MinY + 1) * sizeof(base_t));
-      
+
    for (y=ii_MinY; y<=ii_MaxY; y++)
    {
       powerCount = 0;
-      
+
       for (x=ii_MinX; x<=ii_MaxX; x++)
       {
          bit = BIT(x, y);
-         
+
          if (iv_Terms[bit])
             powerCount++;
       }
-      
+
       yPowX[y - ii_MinY].base = y;
       yPowX[y - ii_MinY].powerCount = powerCount;
-      
+
       if (powerCount > 0)
       {
          yPowX[y - ii_MinY].powersOfY = (powerofy_t *) xmalloc(powerCount * sizeof(powerofy_t));
-         
+
          powerIndex = 0;
-         
+
          for (x=ii_MinX; x<=ii_MaxX; x++)
          {
             bit = BIT(x, y);
-            
+
             if (iv_Terms[bit])
             {
                powerOfY = (powerofy_t *) &yPowX[y - ii_MinY].powersOfY[powerIndex];
-               
+
                powerOfY->x = x;
-               
+
                // Link these together so that we can find x^y that corresponds to y^x
                idx = xPowY[x - ii_MinX].powerIndices[y - ii_MinY];
-               
+
                powerOfY->powerOfX = &xPowY[x - ii_MinX].powersOfX[idx];
 
                powerIndex++;
-            }            
+            }
          }
       }
    }
-      
-   for (x=ii_MinX; x<=ii_MaxX; x++)       
+
+   for (x=ii_MinX; x<=ii_MaxX; x++)
       if (xPowY[x - ii_MinX].powerCount > 0)
          xfree(xPowY[x - ii_MinX].powerIndices);
-   
+
    ip_FactorAppLock->Release();
 }
 
@@ -666,32 +666,32 @@ uint32_t  XYYXApp::GetNumberOfGroups(void)
    uint32_t groupCount = 1;
    uint32_t termsInGroup = 0, termsForX = 0;
    bool     firstXInGroup;
-   
+
    ip_FactorAppLock->Lock();
 
    firstXInGroup = true;
    termsInGroup = 0;
 
    x = ii_MinX;
-   
+
    do
    {
       termsForX = 0;
-      
+
       for (y=ii_MinY; y<=ii_MaxY; y++)
       {
          bit = BIT(x, y);
-         
+
          if (iv_Terms[bit])
          {
             termsInGroup++;
             termsForX++;
          }
       }
-      
+
       // Account for x for the start of the group and 0 for the end of the group.
       termsInGroup += 2;
-      
+
       // We need all y for the first x to fit into a group.
       if (firstXInGroup && termsForX >= (ii_MaxGpuSteps - 2))
          FatalError("Too many terms for x = %u.  Increase setting for -S to %u and try again", x, termsForX+10);
@@ -706,12 +706,12 @@ uint32_t  XYYXApp::GetNumberOfGroups(void)
          groupCount++;
          continue;
       }
-      
+
       x++;
    } while (x <= ii_MaxX);
 
    ip_FactorAppLock->Release();
-   
+
    return groupCount;
 }
 
@@ -722,22 +722,22 @@ uint32_t   XYYXApp::GetGroupedTerms(uint32_t *terms)
    uint32_t  groupIndex = 0;
    uint32_t  termsForX = 0;
    uint32_t  index, maxIndexForGroup;
-   
+
    ip_FactorAppLock->Lock();
 
    index = 0;
    maxIndexForGroup = index + ii_MaxGpuSteps;
 
    x = ii_MinX;
-   
+
    do
    {
       termsForX = 0;
-      
+
       for (y=ii_MinY; y<=ii_MaxY; y++)
       {
          bit = BIT(x, y);
-         
+
          if (iv_Terms[bit])
             termsForX++;
       }
@@ -751,14 +751,14 @@ uint32_t   XYYXApp::GetGroupedTerms(uint32_t *terms)
          maxIndexForGroup = index + ii_MaxGpuSteps;
          continue;
       }
-      
+
       terms[index] = x;
       index++;
 
       for (y=ii_MinY; y<=ii_MaxY; y++)
       {
          bit = BIT(x, y);
-         
+
          if (iv_Terms[bit])
          {
             terms[index] = y;
@@ -768,13 +768,13 @@ uint32_t   XYYXApp::GetGroupedTerms(uint32_t *terms)
 
       terms[index] = 0;
       index++;
-      
+
       x++;
    } while (x <= ii_MaxX);
 
 
    ip_FactorAppLock->Release();
-   
+
    return groupIndex + 1;
 }
 #endif

@@ -16,49 +16,49 @@ SmarandacheGpuWorker::SmarandacheGpuWorker(uint32_t myId, App *theApp) : Worker(
    char        defines[10][50];
    const char *preKernelSources[10];
    uint32_t    defineCount = 0, idx;
-   
+
    ib_GpuWorker = true;
-   
+
    ip_SmarandacheApp = (SmarandacheApp *) theApp;
 
    ii_MaxGpuFactors = ip_SmarandacheApp->GetMaxGpuFactors();
    ii_MaxGpuSteps = ip_SmarandacheApp->GetMaxGpuSteps();
-   
+
    terms_t *terms = ip_SmarandacheApp->GetTerms();
-   
+
    ii_KernelCount = terms->termCount / ii_MaxGpuSteps;
 
    // In case it was rounded down
    if (ii_MaxGpuSteps * ii_KernelCount < terms->termCount)
       ii_KernelCount++;
-   
+
    ii_AllTerms = (uint32_t **) xmalloc(ii_KernelCount * sizeof(uint32_t *));
-   
+
    for (idx=0; idx<ii_KernelCount; idx++)
       ii_AllTerms[idx] = (uint32_t *) xmalloc((ii_MaxGpuSteps+1) * sizeof(uint32_t));
-   
+
    sprintf(defines[defineCount++], "#define D_MAX_FACTORS %d\n", ii_MaxGpuFactors);
 
    for (idx=0; idx<defineCount; idx++)
       preKernelSources[idx] = defines[idx];
-   
+
    preKernelSources[idx] = 0;
-   
+
    ip_Kernel = (GpuKernel *) ip_App->GetGpuDevice()->CreateKernel("sm_kernel", sm_kernel, preKernelSources);
 
    ip_SmarandacheApp->SetGpuWorkGroupSize(ip_Kernel->GetWorkGroupSize());
-   
+
    ii_PrimesInList = ip_SmarandacheApp->GetGpuPrimesPerWorker();
-   
+
    il_PrimeList = (uint64_t *) ip_Kernel->AddCpuArgument("primes", sizeof(uint64_t), ii_PrimesInList);
    ii_KernelTerms = (uint32_t *) ip_Kernel->AddCpuArgument("factorCount", sizeof(uint32_t), ii_MaxGpuSteps+1);
    ii_FactorCount = (uint32_t *) ip_Kernel->AddSharedArgument("factorCount", sizeof(uint32_t), 1);
    il_FactorList = (uint64_t *) ip_Kernel->AddGpuArgument("factorList", sizeof(uint64_t), 2*ii_MaxGpuFactors);
 
    ip_Kernel->PrintStatistics(0);
-   
+
    ib_NeedToRebuildTerms = true;
-   
+
    // The thread can't start until initialization is done
    ib_Initialized = true;
 }
@@ -66,7 +66,7 @@ SmarandacheGpuWorker::SmarandacheGpuWorker(uint32_t myId, App *theApp) : Worker(
 void  SmarandacheGpuWorker::CleanUp(void)
 {
    delete ip_Kernel;
-   
+
    for (uint32_t idx=0; idx<ii_KernelCount; idx++)
       xfree(ii_AllTerms[idx]);
 }
@@ -88,24 +88,24 @@ void  SmarandacheGpuWorker::TestMegaPrimeChunk(void)
          break;
 
       memcpy(ii_KernelTerms, ii_AllTerms[kIdx], ii_MaxGpuSteps * sizeof(uint32_t));
-      
+
       reportTime = time(NULL) + 60;
 
       ii_FactorCount[0] = 0;
-  
+
       ip_Kernel->Execute(ii_PrimesInList);
 
       for (ii=0; ii<ii_FactorCount[0]; ii++)
-      {  
+      {
          idx = ii*2;
-         
+
          n = (uint32_t) il_FactorList[idx+0];
          prime = il_FactorList[idx+1];
-      
+
          ip_SmarandacheApp->ReportFactor(prime, n);
-         
+
          ib_NeedToRebuildTerms = true;
-         
+
          if ((ii+1) == ii_MaxGpuFactors)
             break;
       }
@@ -119,7 +119,7 @@ void  SmarandacheGpuWorker::TestMegaPrimeChunk(void)
          reportTime = time(NULL) + 60;
       }
    }
-   
+
    SetLargestPrimeTested(il_PrimeList[ii_PrimesInList-1], ii_PrimesInList);
 }
 
@@ -132,12 +132,12 @@ void  SmarandacheGpuWorker::BuildTerms(terms_t *terms)
 {
    uint32_t kernelIdx, kernelTermsIdx, globalTermsIdx;
    uint32_t maxGpuSteps = ip_SmarandacheApp->GetMaxGpuSteps();
-   
+
    globalTermsIdx = 0;
    for (kernelIdx=0; kernelIdx<ii_KernelCount; kernelIdx++)
    {
       memset(ii_AllTerms[kernelIdx], 0x00, (maxGpuSteps + 1) * sizeof(uint32_t));
-      
+
       if (globalTermsIdx >= terms->termCount)
          continue;
 
@@ -145,11 +145,11 @@ void  SmarandacheGpuWorker::BuildTerms(terms_t *terms)
       {
          ii_AllTerms[kernelIdx][kernelTermsIdx] = terms->termList[globalTermsIdx];
          globalTermsIdx++;
-         
+
          if (globalTermsIdx >= terms->termCount)
             break;
       };
    }
-   
+
    ib_NeedToRebuildTerms = false;
 }

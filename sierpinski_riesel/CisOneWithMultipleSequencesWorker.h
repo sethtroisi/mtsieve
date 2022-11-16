@@ -32,58 +32,58 @@ public:
    ~CisOneWithMultipleSequencesWorker(void) {};
 
    void              Prepare(uint64_t largestPrimeTested, uint32_t bestQ);
-   
+
    void              TestMegaPrimeChunk(void);
    void              TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
    void              CleanUp(void);
-   
-private:   
+
+private:
    sp_t              GetParity(uint64_t p);
-   
+
    void              TestSinglePrime(uint64_t p);
-   
+
    uint32_t          SetupDiscreteLog(MpArith mp, MpRes resBase, MpRes resInvBase, MpRes resNegCK);
-   
+
    uint32_t          ClimbLadder(MpArith mp, MpRes resBase);
    uint32_t          SetupDiscreteLog(MpArith mp, MpRes resBase, MpRes resInvBase);
-   
+
    uint32_t          GetShift0Subsequences(MpArith mp, uint64_t bm);
    uint32_t          GetShiftXSubsequences(MpArith mp, uint64_t pShift, uint64_t bm, uint32_t r);
-   
+
    uint32_t          BabySteps(MpArith mp, MpRes resBase, MpRes resInvBase, uint32_t babySteps);
 
    CisOneWithMultipleSequencesHelper *ip_CisOneHelper;
- 
+
    uint32_t          ii_SieveLow;
-   
+
    HashTable        *ip_HashTable;
-   
+
    MpRes            *resBJ;         // there is one per Q
    MpRes            *resBD;         // there is one per Q
    MpRes            *resX;
-   
+
    MpRes             resBexpQ;
 
    // See SierpinskiRieselApp.h to see how these are defined.
    uint32_t          ii_BaseMultiple;
    uint32_t          ii_LimitBase;
-   uint32_t          ii_PowerResidueLcm;   
-   
+   uint32_t          ii_PowerResidueLcm;
+
    uint32_t          ii_MaxBabySteps;
-   
+
    int16_t          *ip_DivisorShifts;
    uint16_t         *ip_PowerResidueIndices;
    uint16_t          ii_PowerResidueIndexCount;
 
    legendre_t       *ip_Legendre;
    uint8_t          *ip_LegendreTable;
-   
+
    bool              ib_AllSequencesHaveLegendreTables;
-   
+
    useable_subseq_t *ip_UsableSubsequences;
-   
+
    uint32_t         *ip_CongruentSubseqIndices;
-   
+
    uint32_t         *ip_AllSubseqs;
    uint16_t         *ip_AllLadders;
 

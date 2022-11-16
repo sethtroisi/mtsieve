@@ -24,13 +24,13 @@ AlgebraicFactorHelper::AlgebraicFactorHelper(App *theApp, uint32_t base, uint32_
    primesieve::generate_n_primes(SMALL_PRIME_COUNT, 1, &iv_SmallPrimes);
 
    ip_App = theApp;
-   
+
    ip_AlgebraicFactorFile = 0;
-   
+
    ii_Base = base;
    ii_MinN = minN;
    ii_MaxN = maxN;
-   
+
    GetRoot(ii_Base, &ii_BRoot, &ii_BPower);
 }
 
@@ -41,45 +41,45 @@ AlgebraicFactorHelper::~AlgebraicFactorHelper(void)
 uint64_t AlgebraicFactorHelper::RemoveTermsWithAlgebraicFactors(seq_t *seqPtr)
 {
    uint64_t  startingCount, removedCount = 0;
-   
+
    if (seqPtr->c > 1 || seqPtr->c < -1)
       return 0;
-   
+
    GetRoot(seqPtr->k, &ii_KRoot, &ii_KPower);
-   
+
    startingCount = 1 + ii_MaxN - ii_MinN;
 
    CheckForSpecialForm(seqPtr);
 
    removedCount = RemoveSimpleTerm(seqPtr);
-   
+
    if (startingCount - removedCount > 0)
       removedCount += RemoveTermsWithKPowers(seqPtr);
-   
+
    if (startingCount - removedCount > 0)
       removedCount += RemoveTermsWithKAndBPowers(seqPtr);
-   
+
    if (startingCount - removedCount > 0)
       removedCount += RemoveComplexRoot(seqPtr);
-         
+
    if (startingCount - removedCount > 0)
       removedCount += CheckPower4(seqPtr);
 
    if (startingCount - removedCount > 0)
       removedCount += CheckBase2(seqPtr);
-   
+
    if (ip_AlgebraicFactorFile != 0)
    {
       fclose(ip_AlgebraicFactorFile);
       ip_AlgebraicFactorFile = 0;
    }
-   
+
    return removedCount;
 }
 
 // If c = -1 and k=2^f and b=2^g for any f and g, then this is a Mersenne number.
 // If c = 1 and k=x^f and b=x^g then we have a Generalized Fermat Number.
-// 
+//
 // Note that this will only give a warning, but will not remove terms since it
 // is not looking for algebraic factors.
 void    AlgebraicFactorHelper::CheckForSpecialForm(seq_t *seqPtr)
@@ -87,17 +87,17 @@ void    AlgebraicFactorHelper::CheckForSpecialForm(seq_t *seqPtr)
    // Needs to be k*b^n-1 or k*b^n+1
    if (seqPtr->c != -1 && seqPtr->c != 1)
       return;
-   
+
    // If c = -1, then b must be 2^g for some g
    if (seqPtr->c == -1 && ii_BRoot != 2)
       return;
 
    if (seqPtr->k > 1)
-   {      
+   {
       // If c = -1, then k must be 2^f for some f
       if (seqPtr->c == -1 && ii_KRoot != 2)
          return;
-      
+
       // If c = +1, then k and b must have the same root
       if (seqPtr->c == +1 && ii_KRoot != ii_BRoot)
          return;
@@ -134,7 +134,7 @@ uint64_t  AlgebraicFactorHelper::RemoveSimpleTerm(seq_t *seqPtr)
 {
    uint32_t  removedCount = 0;
    uint32_t  n;
-      
+
    // For ii_BRoot = 2 and seqPtr->c = -1, we have 1 as a divisor, ignore it.
    if (ii_BRoot + seqPtr->c == 1)
       return 0;
@@ -142,18 +142,18 @@ uint64_t  AlgebraicFactorHelper::RemoveSimpleTerm(seq_t *seqPtr)
    if (seqPtr->k == 1)
    {
       ii_KPower = 0;
-      
+
       ip_App->WriteToConsole(COT_OTHER, "(st) Sequence has algebraic factorization: %" PRIu64"*%u^n%+" PRId64" -> b = %u^%u", seqPtr->k, ii_Base, seqPtr->c,
                ii_BRoot, ii_BPower);
    }
-   else 
+   else
    {
       if (ii_KRoot != ii_BRoot)
          return 0;
-      
+
       ip_App->WriteToConsole(COT_OTHER, "(st) Sequence has algebraic factorization: %" PRIu64"*%u^n%+" PRId64" -> k = %u^%u and b = %u^%u", seqPtr->k, ii_Base, seqPtr->c,
                ii_KRoot, ii_KPower, ii_BRoot, ii_BPower);
-   }   
+   }
 
    for (n=ii_MinN; n<=ii_MaxN; n++)
    {
@@ -161,11 +161,11 @@ uint64_t  AlgebraicFactorHelper::RemoveSimpleTerm(seq_t *seqPtr)
       if (seqPtr->c == +1)
          if ((ii_KPower + n*ii_BPower) % 2 == 0)
             continue;
-      
+
       removedCount += CheckAndLogAlgebraicFactor(seqPtr, n, "%" PRId64"", ii_BRoot + seqPtr->c);
    }
-   
-   ip_App->WriteToConsole(COT_OTHER, "(st) Sequence %" PRIu64"*%u^n%+" PRId64" has %d terms removed has they have the factor %" PRId64"", 
+
+   ip_App->WriteToConsole(COT_OTHER, "(st) Sequence %" PRIu64"*%u^n%+" PRId64" has %d terms removed has they have the factor %" PRId64"",
          seqPtr->k, ii_Base, seqPtr->c, removedCount, ii_BRoot + seqPtr->c);
 
    return removedCount;
@@ -181,7 +181,7 @@ uint64_t  AlgebraicFactorHelper::RemoveTermsWithKPowers(seq_t *seqPtr)
    uint32_t  removedCount = 0, loopRemovedCount = 0;
    uint32_t  n, idx;
    uint32_t  curroot, curpower;
-   
+
    // If k = 1, then RemoveAlgebraicSimpleTerm() will have handled it
    if (seqPtr->k == 1)
       return 0;
@@ -195,7 +195,7 @@ uint64_t  AlgebraicFactorHelper::RemoveTermsWithKPowers(seq_t *seqPtr)
       return 0;
 
 
-   
+
    for (idx=1; idx<ii_KPower; idx++)
    {
       // Given k=ii_KRoot^ii_KPower, find all idx where ii_KPower%idx = 0.
@@ -203,39 +203,39 @@ uint64_t  AlgebraicFactorHelper::RemoveTermsWithKPowers(seq_t *seqPtr)
       // forms ii_KRoot^(6/2), ii_KRoot^(6/2), and ii_KRoot^(6/6).
       if (ii_KPower % idx != 0)
          continue;
-      
+
       curpower = ii_KPower / idx;
       curroot = ii_KRoot;
       for (n=1; n<idx; n++)
          curroot *= ii_KRoot;
-      
+
       if (seqPtr->c == +1)
       {
          // x^1 is not a divisor of x^n+1, so skip this idx
          if (idx == ii_KPower)
             continue;
-         
+
          // x^y for even y is not a divisor of x^(y*n)+1, so skip this idx.
          if (curpower%2 == 0)
             continue;
       }
 
       // Since k = kroot^kpower we can remove all terms n where n%kpower = 0
-      // For example 27*10^n+1 --> (3^3)*10^n+1 has factors in the form 3*10^n/3+1 
+      // For example 27*10^n+1 --> (3^3)*10^n+1 has factors in the form 3*10^n/3+1
       ip_App->WriteToConsole(COT_OTHER, "(kp) Sequence has algebraic factorization: %" PRIu64"*%u^n%+" PRId64" -> (%u^%u)*%u^n%+" PRId64"", seqPtr->k, ii_Base, seqPtr->c,
                curroot, curpower, ii_Base, seqPtr->c);
-               
+
       loopRemovedCount = 0;
 
       for (n=ii_MinN; n<=ii_MaxN; n++)
       {
          if (n % curpower != 0)
             continue;
-         
+
          loopRemovedCount += CheckAndLogAlgebraicFactor(seqPtr, n, "(%u*%u^%u%+" PRId64")", curroot, ii_Base, n/curpower, seqPtr->c);
       }
 
-      ip_App->WriteToConsole(COT_OTHER, "(kp) Sequence %" PRIu64"*%u^n%+" PRId64" has %d terms removed due to algebraic factors of the form %u*%u^(n/%u)%+" PRId64"", 
+      ip_App->WriteToConsole(COT_OTHER, "(kp) Sequence %" PRIu64"*%u^n%+" PRId64" has %d terms removed due to algebraic factors of the form %u*%u^(n/%u)%+" PRId64"",
                seqPtr->k, ii_Base, seqPtr->c, loopRemovedCount, curroot, ii_Base, curpower, seqPtr->c);
 
       removedCount += loopRemovedCount;
@@ -254,7 +254,7 @@ uint64_t  AlgebraicFactorHelper::RemoveTermsWithKAndBPowers(seq_t *seqPtr)
    uint32_t  removedCount = 0, loopRemovedCount = 0;
    uint32_t  n, idx;
    uint32_t  curroot, curpower;
-   
+
    // If k = 1, then RemoveAlgebraicSimpleTerm() will have handled it
    if (seqPtr->k == 1)
       return 0;
@@ -268,8 +268,8 @@ uint64_t  AlgebraicFactorHelper::RemoveTermsWithKAndBPowers(seq_t *seqPtr)
       return 0;
 
    if (ii_BPower == 1)
-      return removedCount;   
-   
+      return removedCount;
+
    for (idx=2; idx<=ii_KPower; idx++)
    {
       // Given k=ii_KRoot^ii_KPower, find all idx where ii_KPower%idx = 0.
@@ -277,46 +277,46 @@ uint64_t  AlgebraicFactorHelper::RemoveTermsWithKAndBPowers(seq_t *seqPtr)
       // forms ii_KRoot^(6/2), ii_KRoot^(6/2), and ii_KRoot^(6/6).
       if (ii_KPower % idx != 0)
          continue;
-      
+
       curpower = ii_KPower / idx;
       curroot = ii_KRoot;
       for (n=1; n<idx; n++)
          curroot *= ii_KRoot;
-      
+
       if (seqPtr->c == +1)
       {
          // x^1 is not a divisor of x^n+1, so skip this idx
          if (idx == ii_KPower)
             continue;
-         
+
          // x^y for even y is not a divisor of x^(y*n)+1, so skip this idx.
          if (curpower%2 == 0)
             continue;
       }
 
-      ip_App->WriteToConsole(COT_OTHER, "(kbp) Sequence has algebraic factorization: %" PRIu64"*%u^n%+" PRId64" -> (%u^%u)*%u^(%u*n)%+" PRId64"", 
+      ip_App->WriteToConsole(COT_OTHER, "(kbp) Sequence has algebraic factorization: %" PRIu64"*%u^n%+" PRId64" -> (%u^%u)*%u^(%u*n)%+" PRId64"",
                   seqPtr->k, ii_Base, seqPtr->c, curroot, curpower, ii_BRoot, ii_BPower, seqPtr->c);
-               
+
       loopRemovedCount = 0;
 
       for (n=ii_MinN; n<=ii_MaxN; n++)
       {
          if ((n*ii_BPower) % curpower != 0)
             continue;
-         
+
          // For c = +1, x^y does not divide x^(y*n)+1 when y*n is even
          if (seqPtr->c == +1)
             if (((n*ii_BPower) / curpower) % 2 == 0)
                continue;
-         
+
          loopRemovedCount += CheckAndLogAlgebraicFactor(seqPtr, n, "(%u*%u^%u%+" PRId64")", curroot, ii_BRoot, (ii_BPower*n)/curpower, seqPtr->c);
       }
 
       if (idx == ii_KPower)
-        ip_App->WriteToConsole(COT_OTHER, "(kbp) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form %u*%u^((%u*n)/%u)%+" PRId64"", 
+        ip_App->WriteToConsole(COT_OTHER, "(kbp) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form %u*%u^((%u*n)/%u)%+" PRId64"",
                   seqPtr->k, ii_Base, seqPtr->c, loopRemovedCount, curroot, ii_BRoot, ii_BPower, curpower, seqPtr->c);
       else
-        ip_App->WriteToConsole(COT_OTHER, "(kbp) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form (%u^%u)*%u^((%u*n)/%u)%+" PRId64"", 
+        ip_App->WriteToConsole(COT_OTHER, "(kbp) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form (%u^%u)*%u^((%u*n)/%u)%+" PRId64"",
                   seqPtr->k, ii_Base, seqPtr->c, loopRemovedCount, curroot, curpower, ii_BRoot, ii_BPower, curpower, seqPtr->c);
 
       removedCount += loopRemovedCount;
@@ -324,14 +324,14 @@ uint64_t  AlgebraicFactorHelper::RemoveTermsWithKAndBPowers(seq_t *seqPtr)
 
    return removedCount;
 }
-   
+
 // If seqPtr->k*b^ii = root^m for root > 1 and m > 1, then we can remove algebraic factors
 // because we can find a simple root for some of the terms.
 //
 //   1)  base^n = b^(bpow*n)
 //
 //   2)  seqPtr->k -> k*b^y
-// 
+//
 //   3)  seqPtr->k*base^n -> (k*b^y)*(b^(bpow*n))
 //                    -> k*b^(bpow*n+y)
 //
@@ -361,26 +361,26 @@ uint64_t  AlgebraicFactorHelper::RemoveComplexRoot(seq_t *seqPtr)
    // base and seqPtr->k must share a divisor
    if (gcd64(ii_Base, seqPtr->k) == 1)
       return 0;
-   
+
    // If k is r^x and b is r^y for some r, x, and y, then we have simple roots that
    // are handled elsewhere.
    if (ii_BRoot == ii_KRoot)
       return 0;
-   
+
    // Step 1:  Factorize b
    bf_count = GetFactorList(ii_Base, bf_factor, bf_power);
-   
+
    // Step 2:  Factorize k
    kf_count = GetFactorList(seqPtr->k, kf_factor, kf_power);
-      
+
    for (z1=0; z1<kf_count; z1++)
    {
       kbf_factor[z1] = kf_factor[z1];
       kbf_power[z1] = kf_power[z1];
    }
-   
+
    kbf_count = kf_count;
-      
+
    for (ii=1; ii<10; ii++)
    {
       // We could multiply out seqPtr->k*base^ii and factor that value, but
@@ -396,12 +396,12 @@ uint64_t  AlgebraicFactorHelper::RemoveComplexRoot(seq_t *seqPtr)
                kbf_power[z1] += bf_power[z2];
                idx = z1;
             }
-         
+
          if (idx == 99999)
          {
             kbf_factor[kbf_count] = bf_factor[z2];
             kbf_power[kbf_count] = bf_power[z2];
-            kbf_count++;            
+            kbf_count++;
          }
       }
 
@@ -411,28 +411,28 @@ uint64_t  AlgebraicFactorHelper::RemoveComplexRoot(seq_t *seqPtr)
 
       for (idx=1; idx<kbf_count; idx++)
          m = gcd32(m, kbf_power[idx]);
-      
+
       // If m then seqPtr->k*base^ii is not a perfect power
       if (m == 1)
          continue;
 
       for (idx=2; idx<m; idx++)
-      {         
+      {
          // Given k*b^ii=root^m, find all idx where m%idx = 0.
          // If m == 6, then we look for algebraic factors with the
          // forms root^2 and root^3.
          if (m % idx != 0)
             continue;
-         
+
          z = m / idx;
-                  
+
          root[0] = 0;
 
          for (z1=0; z1<kbf_count; z1++)
          {
             if (kbf_power[z1] == 0)
                continue;
-            
+
             if (z1 == 0)
             {
                if (kbf_power[z1] == z)
@@ -447,14 +447,14 @@ uint64_t  AlgebraicFactorHelper::RemoveComplexRoot(seq_t *seqPtr)
             {
                addParenthesis = 1;
                strcpy(part, root);
-               
+
                if (kbf_power[z1] == z)
                   sprintf(root, "%s*%u", part, kbf_factor[z1]);
                else
                   sprintf(root, "%s*%u^%u", part, kbf_factor[z1], kbf_power[z1] / z);
             }
          }
-         
+
          if (addParenthesis)
          {
             if (ii == 1)
@@ -482,10 +482,10 @@ uint64_t  AlgebraicFactorHelper::RemoveComplexRoot(seq_t *seqPtr)
 
          // n-ii must be greater than 0
          if (n < ii+1) n = ii + 1;
-         
+
          // To avoid 2^1-1 divisors
          if (!strcmp(root, "2") && seqPtr->c == -1 && n-ii==1) n++;
-         
+
          // For c = +1, if z is odd, then double it to make it even as we can only
          // provide factors for odd n.
          if (seqPtr->c == +1 && z%2 == 1)
@@ -493,17 +493,17 @@ uint64_t  AlgebraicFactorHelper::RemoveComplexRoot(seq_t *seqPtr)
 
          // Find smallest n >= ii_MinN where (n-ii)%z = 0
          while ((n - ii) % z != 0) n++;
-         
+
          // For c = +1, n must be odd in order for root^(n/f)+1 to be a factor
          if (seqPtr->c == +1 && (n - ii)%2 == 0)
          {
             // If z and n are even, then n%z will never be 0 so we can skip this z.
             if (z%2 == 0)
                continue;
-            
+
             n += z;
          }
-                     
+
          loopRemovedCount = 0;
 
          for (; n<=ii_MaxN; n+=z)
@@ -511,16 +511,16 @@ uint64_t  AlgebraicFactorHelper::RemoveComplexRoot(seq_t *seqPtr)
                loopRemovedCount += CheckAndLogAlgebraicFactor(seqPtr, n, "((%s)*%u^%u%+" PRId64")", root, ii_Base, (n-ii)/z, seqPtr->c);
             else
                loopRemovedCount += CheckAndLogAlgebraicFactor(seqPtr, n, "(%s*%u^%u%+" PRId64")", root, ii_Base, (n-ii)/z, seqPtr->c);
-         
+
          if (addParenthesis)
-           ip_App->WriteToConsole(COT_OTHER, "(cr) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form (%s)*%u^((n-%d)/%d)%+" PRId64"", 
+           ip_App->WriteToConsole(COT_OTHER, "(cr) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form (%s)*%u^((n-%d)/%d)%+" PRId64"",
                      seqPtr->k, ii_Base, seqPtr->c, loopRemovedCount, root, ii_Base, ii, z, seqPtr->c);
          else
-           ip_App->WriteToConsole(COT_OTHER, "(cr) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form %s*%u^((n-%d)/%d)%+" PRId64"", 
+           ip_App->WriteToConsole(COT_OTHER, "(cr) Sequence %" PRIu64"*%u^n%+" PRId64" has %u terms removed due to algebraic factors of the form %s*%u^((n-%d)/%d)%+" PRId64"",
                      seqPtr->k, ii_Base, seqPtr->c, loopRemovedCount, root, ii_Base, ii, z, seqPtr->c);
-         
+
          removedCount += loopRemovedCount;
-      }     
+      }
    }
 
    return removedCount;
@@ -538,7 +538,7 @@ uint64_t  AlgebraicFactorHelper::CheckBase2(seq_t *seqPtr)
    // We want c = 1
    if (seqPtr->c != 1)
       return 0;
-   
+
    bpow = 0;
    b = ii_Base;
    while (b > 1)
@@ -546,7 +546,7 @@ uint64_t  AlgebraicFactorHelper::CheckBase2(seq_t *seqPtr)
       // if b is odd and greater than 1, then we can't use it
       if (b & 1)
          return 0;
-      
+
       b >>= 1;
       bpow++;
    }
@@ -564,11 +564,11 @@ uint64_t  AlgebraicFactorHelper::CheckBase2(seq_t *seqPtr)
 
    // Now that the base is removed, refactorize k
    kf_count = GetFactorList(k, kf_factor, kf_power);
-   
+
    // We now have k = f1^p1 * f2^p2 ... fn^pn
    // Now determine m such that m = gcd(p1, p2, ..., pn)
    m = kf_power[0];
-      
+
    for (idx=1; idx<kf_count; idx++)
       m = gcd32(m, kf_power[idx]);
 
@@ -581,13 +581,13 @@ uint64_t  AlgebraicFactorHelper::CheckBase2(seq_t *seqPtr)
       root *= (uint32_t) pow((double) kf_factor[idx], (double) (kf_power[idx] / 4));
 
    n = ii_MinN;
-   
+
    // Exit the function right away if n*bpow+y is not divisible
    // by 4 and the gcd of bpow and 4 is not 1 because we'll get
    // an infinite loop in the while statement right after this.
    if ((((n*bpow+y) % 4) != 2) && gcd32(bpow, 4) > 1)
       return 0;
-         
+
    while ((n*bpow+y)% 4 != 2) n++;
    while (n > ii_MinN && n > 4) n -= 4;
    while (n < ii_MinN) n += 4;
@@ -619,27 +619,27 @@ uint64_t  AlgebraicFactorHelper::CheckPower4(seq_t *seqPtr)
    // We want k to be divisible by 4
    if (seqPtr->k % 4 != 0)
       return 0;
-   
+
    if (ii_BPower % 4 == 0)
       ninc = 1;
-   
+
    else if (ii_BPower % 4 == 2)
    {
       ninc = 2;
-      
+
       if (ii_BPower > 2)
       {
          // If base = x^(y*2) then compute ii_BRoot as x^y
          // In other words set ii_BRoot = sqrt(base)
          bexp = ii_BPower / 2;
-         
+
          b1 = 1;
          while (bexp > 0)
          {
             b1 *= ii_BRoot;
             bexp--;
          }
-      
+
          ii_BPower = 2;
          ii_BRoot = b1;
       }
@@ -649,14 +649,14 @@ uint64_t  AlgebraicFactorHelper::CheckPower4(seq_t *seqPtr)
       ii_BRoot = ii_Base;
       ninc = 4;
    }
-   
+
    if (seqPtr->k == 4)
       ii_KRoot = 1;
    else
    {
       // Now we have seqPtr->k = 4*ii_KRoot^ii_KPower
       GetRoot(seqPtr->k/4, &ii_KRoot, &ii_KPower);
-      
+
       // We want ii_KPower to be a multiple of 4
       if (ii_KPower % 4 != 0)
          return 0;
@@ -664,7 +664,7 @@ uint64_t  AlgebraicFactorHelper::CheckPower4(seq_t *seqPtr)
 
    n = ii_MinN;
    while (n % ninc > 0) n++;
-   
+
    for (; n<=ii_MaxN; n+=ninc)
    {
       if (ii_KRoot == 1)
@@ -726,7 +726,7 @@ uint64_t  AlgebraicFactorHelper::CheckPower4(seq_t *seqPtr)
 }
 
 uint32_t   AlgebraicFactorHelper::CheckAndLogAlgebraicFactor(seq_t *seqPtr, uint32_t n, const char *fmt, ...)
-{   
+{
    va_list args;
 
    if (n < ii_MinN || n > ii_MaxN)
@@ -734,24 +734,24 @@ uint32_t   AlgebraicFactorHelper::CheckAndLogAlgebraicFactor(seq_t *seqPtr, uint
 
    if (!seqPtr->nTerms[n-ii_MinN])
       return 0;
-   
+
    seqPtr->nTerms[n-ii_MinN] = false;
 
    if (!ip_AlgebraicFactorFile)
-   {   
+   {
       char  fName[50];
-      
+
       sprintf(fName, "alg_%" PRIu64"_%u_%+" PRId64".log", seqPtr->k, ii_Base, seqPtr->c);
-      
+
       ip_AlgebraicFactorFile = fopen(fName, "a");
    }
-   
+
    va_start(args,fmt);
    vfprintf(ip_AlgebraicFactorFile, fmt, args);
    va_end(args);
-   
+
    fprintf(ip_AlgebraicFactorFile, " | %" PRIu64"*%u^%d%+" PRId64"\n", seqPtr->k, ii_Base, n, seqPtr->c);
-   
+
    return 1;
 }
 
@@ -761,15 +761,15 @@ uint32_t AlgebraicFactorHelper::GetFactorList(uint64_t theNumber, uint32_t *fact
    uint32_t  power;
    uint64_t  thePrime;
 
-   std::vector<uint64_t>::iterator it = iv_SmallPrimes.begin(); 
-         
+   std::vector<uint64_t>::iterator it = iv_SmallPrimes.begin();
+
    // Get the prime factorization of the input number.  Note that since the vector only has
    // 100000 primes, some numbers might not get fully factored.
    while (it != iv_SmallPrimes.end())
    {
       thePrime = *it;
       it++;
-      
+
       power = 0;
       while (theNumber % thePrime == 0)
       {
@@ -782,7 +782,7 @@ uint32_t AlgebraicFactorHelper::GetFactorList(uint64_t theNumber, uint32_t *fact
          factorList[distinctFactors] = thePrime;
          powerList[distinctFactors] = power;
          distinctFactors++;
-         
+
          if (theNumber < thePrime * thePrime)
             break;
       }
@@ -802,11 +802,11 @@ uint32_t AlgebraicFactorHelper::GetFactorList(uint64_t theNumber, uint32_t *fact
 // If c = -1 and k=2^f and b=2^g for any f and g, then this is a Mersenne number.
 // If c = 1 and k=x^f and b=x^g then we have a Generalized Fermat Number.
 bool     AlgebraicFactorHelper::IsGfnOrMersenneForm(seq_t *seqPtr)
-{   
+{
    // Needs to be k*b^n-1 or k*b^n+1
    if (seqPtr->c != -1 && seqPtr->c != 1)
       return false;
-   
+
    // If c = -1, then b must be 2^g for some g
    if (seqPtr->c == -1 && ii_BRoot != 2)
       return false;
@@ -816,7 +816,7 @@ bool     AlgebraicFactorHelper::IsGfnOrMersenneForm(seq_t *seqPtr)
       // If c = -1, then k must be 2^f for some f
       if (seqPtr->c == -1 && ii_KRoot != 2)
          return false;
-      
+
       // If c = +1, then k and b must have the same root
       if (seqPtr->c == +1 && ii_BRoot != ii_KRoot)
          return false;
@@ -833,17 +833,17 @@ void  AlgebraicFactorHelper::GetRoot(uint64_t number, uint32_t *root, uint32_t *
 
    // To get rid of compiler warnings
    rf_power[0] = 0;
-   
+
    rf_count = GetFactorList(number, rf_factor, rf_power);
-   
+
    rpow = rf_power[0];
    for (idx=1; idx<rf_count; idx++)
       rpow = gcd32(rpow, rf_power[idx]);
-      
+
    r = 1;
    for (idx=0; idx<rf_count; idx++)
       r *= (uint32_t) pow((double) rf_factor[idx], (double) (rf_power[idx] / rpow));
-   
+
    *root = r;
    *power = rpow;
 }

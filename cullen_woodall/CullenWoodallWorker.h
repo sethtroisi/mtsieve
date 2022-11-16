@@ -24,7 +24,7 @@ public:
    void              TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
    void              CleanUp(void);
 
-private:   
+private:
    void              TestSmallPrimesFPU(uint64_t *ps);
    void              TestLargePrimesFPU(uint64_t *ps);
 
@@ -37,11 +37,11 @@ private:
    uint64_t          ComputeMultiplicativeInverse(uint64_t a, uint64_t p);
 
    CullenWoodallApp *ip_CullenWoodallApp;
-   
+
    uint32_t          ii_Base;
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
-   
+
    uint32_t          ii_MaxTermCount;
    uint32_t         *ii_Terms;
    uint64_t          il_NextTermsBuild;

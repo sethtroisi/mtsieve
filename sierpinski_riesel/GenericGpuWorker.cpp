@@ -34,7 +34,7 @@ GenericGpuWorker::GenericGpuWorker(uint32_t myId, App *theApp, AbstractSequenceH
    ib_GpuWorker = true;
    ip_FirstSequence = appHelper->GetFirstSequenceAndSequenceCount(ii_SequenceCount);
    ip_Subsequences = appHelper->GetSubsequences(ii_SubsequenceCount);
-   
+
    ib_CanUseCIsOneLogic = ip_SierpinskiRieselApp->CanUseCIsOneLogic();
    il_MaxK = ip_SierpinskiRieselApp->GetMaxK();
    ib_HaveSingleC = ip_SierpinskiRieselApp->HasSingleC();
@@ -45,16 +45,16 @@ GenericGpuWorker::GenericGpuWorker(uint32_t myId, App *theApp, AbstractSequenceH
 }
 
 void  GenericGpuWorker::Prepare(uint64_t largestPrimeTested, uint32_t bestQ)
-{ 
+{
    ii_BestQ = bestQ;
 
    uint32_t sequencesPerKernel = ii_SequenceCount / ii_KernelCount;
-   
+
    while (sequencesPerKernel * ii_KernelCount < ii_SequenceCount)
-      sequencesPerKernel++; 
-   
+      sequencesPerKernel++;
+
    CreateKernels(sequencesPerKernel);
-   
+
    PopulateKernelArguments(sequencesPerKernel);
 
    // The thread can't start until initialization is done
@@ -67,10 +67,10 @@ void    GenericGpuWorker::CreateKernels(uint32_t sequencesPerKernel)
    uint32_t kIdx = 0;
    uint32_t seqCount = 0;
    uint32_t ssCount = 0;
-   
+
    ii_SubseqIdx   = (uint32_t  *) xmalloc(ii_KernelCount*sizeof(uint32_t));
    ip_Kernel      = (GpuKernel **) xmalloc(ii_KernelCount*sizeof(GpuKernel *));
-   
+
    il_Primes      = (uint64_t **) xmalloc(ii_KernelCount*sizeof(uint64_t *));
    il_Ks          = (uint64_t **) xmalloc(ii_KernelCount*sizeof(uint64_t *));
    il_Cs          = ( int64_t **) xmalloc(ii_KernelCount*sizeof( int64_t *));
@@ -78,23 +78,23 @@ void    GenericGpuWorker::CreateKernels(uint32_t sequencesPerKernel)
    ii_Qs          = (uint32_t **) xmalloc(ii_KernelCount*sizeof(uint32_t *));
    ii_FactorCount = (uint32_t **) xmalloc(ii_KernelCount*sizeof(uint32_t *));
    il_FactorList  = (uint64_t **) xmalloc(ii_KernelCount*sizeof(uint64_t *));
-   
+
    ii_SubseqIdx[kIdx] = seqPtr->ssIdxFirst;
-   
+
    // Create the Kernels which in turn will allocate memory for the kernel arguments
    while (seqPtr != NULL)
    {
       if (seqCount == sequencesPerKernel)
       {
          ip_Kernel[kIdx] = CreateKernel(kIdx, seqCount, ssCount);
-         
+
          kIdx++;
-         
+
          seqCount = 0;
          ssCount = 0;
          ii_SubseqIdx[kIdx] = seqPtr->ssIdxFirst;
       }
-      
+
       seqCount++;
       ssCount += seqPtr->ssCount;
 
@@ -111,18 +111,18 @@ void    GenericGpuWorker::PopulateKernelArguments(uint32_t sequencesPerKernel)
    uint32_t kIdx = 0;
    uint32_t kSeqIdx = 0;
    uint32_t kSubseqIdx = 0;
-      
+
    // Now we can populate the memory for the kernel arguments
    while (seqPtr != NULL)
    {
       if (kSeqIdx == sequencesPerKernel)
-      {         
+      {
          kIdx++;
-         
+
          kSeqIdx = 0;
          kSubseqIdx = 0;
       }
-      
+
       il_Ks[kIdx][kSeqIdx] = seqPtr->k;
       il_Cs[kIdx][kSeqIdx] = seqPtr->c;
 
@@ -130,17 +130,17 @@ void    GenericGpuWorker::PopulateKernelArguments(uint32_t sequencesPerKernel)
       {
          ii_SeqIdxs[kIdx][kSubseqIdx] = kSeqIdx;
          ii_Qs[kIdx][kSubseqIdx] = ip_Subsequences[ssIdx].q;
-         
+
          kSubseqIdx++;
-      }      
+      }
 
       kSeqIdx++;
       seqPtr = (seq_t *) seqPtr->next;
-   }   
+   }
 }
 
 GpuKernel *GenericGpuWorker::CreateKernel(uint32_t kIdx, uint32_t sequences, uint32_t subsequences)
-{ 
+{
    uint32_t r = ii_MaxN/ii_BestQ - ii_MinN/ii_BestQ + 1;
    double babyStepFactor = ip_SierpinskiRieselApp->GetBabyStepFactor();
 
@@ -154,17 +154,17 @@ GpuKernel *GenericGpuWorker::CreateKernel(uint32_t kIdx, uint32_t sequences, uin
       giantSteps = ceil((double)r/HASH_MAX_ELTS);
       babySteps = ceil((double)r/giantSteps);
    }
-   
+
    //printf("2 gs=%u bs=%u max=%u\n", giantSteps, babySteps, HASH_MAX_ELTS);
 
    uint32_t sieveLow = ii_MinN / ii_BestQ;
    uint32_t sieveRange = babySteps * giantSteps;
    uint32_t elements = babySteps;
    uint32_t hsize;
-   
+
    if (HASH_MINIMUM_ELTS > elements)
       elements = HASH_MINIMUM_ELTS;
-      
+
    for (hsize = 1<<HASH_MINIMUM_SHIFT; hsize < elements/DEFAULT_HASH_MAX_DENSITY; )
       hsize <<= 1;
 
@@ -185,19 +185,19 @@ GpuKernel *GenericGpuWorker::CreateKernel(uint32_t kIdx, uint32_t sequences, uin
    sprintf(defines[defineCount++], "#define SUBSEQUENCES %u", subsequences);
    sprintf(defines[defineCount++], "#define HASH_ELEMENTS %u", elements);
    sprintf(defines[defineCount++], "#define HASH_SIZE %u", hsize);
-   
+
    if (ib_HaveSingleC)
       sprintf(defines[defineCount++], "#define SINGLE_C %" PRId64"", ip_FirstSequence->c);
-   
+
    for (idx=0; idx<defineCount; idx++)
       preKernelSources[idx] = defines[idx];
-   
+
    preKernelSources[idx] = 0;
 
    GpuKernel *kernel = (GpuKernel *) ip_App->GetGpuDevice()->CreateKernel("generic_kernel", generic_kernel, preKernelSources);
 
    ip_SierpinskiRieselApp->SetGpuWorkGroupSize(kernel->GetWorkGroupSize());
-   
+
    ii_PrimesInList = ip_SierpinskiRieselApp->GetGpuPrimesPerWorker() * ii_ChunksPerGpuWorker;
    ii_KernelWorkSize = ii_PrimesInList / ii_ChunksPerGpuWorker;
 
@@ -205,12 +205,12 @@ GpuKernel *GenericGpuWorker::CreateKernel(uint32_t kIdx, uint32_t sequences, uin
       il_Primes[kIdx]   = (uint64_t *) kernel->AddCpuArgument("primes", sizeof(uint64_t), ii_KernelWorkSize);
    else
       il_Primes[kIdx]   = (uint64_t *) kernel->AddArgument("primes", ip_Kernel[0]);
-      
+
    il_Ks[kIdx]          = (uint64_t *) kernel->AddCpuArgument("k", sizeof(uint64_t), sequences);
    il_Cs[kIdx]          = ( int64_t *) kernel->AddCpuArgument("c", sizeof(int64_t), sequences);
    ii_SeqIdxs[kIdx]     = (uint32_t *) kernel->AddCpuArgument("seqIdx", sizeof(uint32_t), subsequences);
    ii_Qs[kIdx]          = (uint32_t *) kernel->AddCpuArgument("q", sizeof(uint32_t), subsequences);
-   
+
    if (kIdx == 0)
    {
       ii_FactorCount[kIdx] = (uint32_t *) kernel->AddSharedArgument("factorCount", sizeof(uint32_t), 1);
@@ -224,24 +224,24 @@ GpuKernel *GenericGpuWorker::CreateKernel(uint32_t kIdx, uint32_t sequences, uin
 
    if (kIdx == 0)
       kernel->PrintStatistics(hsize * 2 + elements * 2 + (elements+1)*8 + ii_SubsequenceCount*8);
-   
+
    return kernel;
 }
 
 void  GenericGpuWorker::CleanUp(void)
-{ 
+{
    for (uint32_t kIdx=0; kIdx<ii_KernelCount; kIdx++)
       delete ip_Kernel[kIdx];
-   
+
    xfree(ip_Kernel);
    xfree(il_Primes);
    xfree(il_Ks);
-   xfree(il_Cs);  
-   xfree(ii_SeqIdxs);  
-   xfree(ii_Qs);  
+   xfree(il_Cs);
+   xfree(ii_SeqIdxs);
+   xfree(ii_Qs);
    xfree(ii_FactorCount);
    xfree(il_FactorList);
-   
+
    xfree(ii_SubseqIdx);
 }
 
@@ -254,10 +254,10 @@ void  GenericGpuWorker::TestMegaPrimeChunk(void)
    for (uint32_t cIdx=0; cIdx<ii_ChunksPerGpuWorker; cIdx++)
    {
       uint32_t pIndex = ii_KernelWorkSize * cIdx;
-      
+
       // All kernels share the same memory for the primes
       memcpy(il_Primes[0], &il_PrimeList[pIndex], sizeof(uint64_t) * ii_KernelWorkSize);
-   
+
       for (uint32_t kIdx=0; kIdx<ii_KernelCount; kIdx++)
       {
          ii_FactorCount[kIdx][0] = 0;
@@ -265,20 +265,20 @@ void  GenericGpuWorker::TestMegaPrimeChunk(void)
          ip_Kernel[kIdx]->Execute(ii_KernelWorkSize);
 
          gpuFactors = ii_FactorCount[kIdx][0];
-         
+
          for (uint32_t ii=0; ii<gpuFactors; ii++)
-         {  
+         {
             idx = ii*4;
-            
+
             ssIdx = (uint32_t) il_FactorList[kIdx][idx+0] + ii_SubseqIdx[kIdx];
             n = (uint32_t) il_FactorList[kIdx][idx+1];
             prime = il_FactorList[kIdx][idx+2];
 
             if ((ii+1) == ii_MaxGpuFactors)
                break;
-         
+
             ip_SierpinskiRieselApp->ReportFactor(prime, ip_Subsequences[ssIdx].seqPtr, n, true);
-            
+
          }
 
          if (gpuFactors >= ii_MaxGpuFactors)
@@ -287,7 +287,7 @@ void  GenericGpuWorker::TestMegaPrimeChunk(void)
    }
 
    SetLargestPrimeTested(il_PrimeList[ii_PrimesInList-1], ii_PrimesInList);
-   
+
    // Determine if we can switch to the CisOne workers.  This will automatically switch
    // to the CisOne GPU workers.
    if (ib_CanUseCIsOneLogic && il_PrimeList[ii_PrimesInList-1] > il_MaxK && ii_SequenceCount == 1)

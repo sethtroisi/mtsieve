@@ -27,7 +27,7 @@ public:
 
 protected:
    MultiFactorialApp      *ip_MultiFactorialApp;
-   
+
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
    uint32_t          ii_MultiFactorial;

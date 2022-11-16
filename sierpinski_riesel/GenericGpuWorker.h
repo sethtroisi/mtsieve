@@ -25,26 +25,26 @@ public:
    void              Prepare(uint64_t largestPrimeTested, uint32_t bestQ);
    void              TestMegaPrimeChunk(void);
    void              TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
-   
+
    void              CleanUp(void);
 
 protected:
    void              CreateKernels(uint32_t sequencesPerKernel);
    void              PopulateKernelArguments(uint32_t sequencesPerKernel);
    GpuKernel        *CreateKernel(uint32_t kIdx, uint32_t sequences, uint32_t subsequences);
-   
+
    bool              ib_CanUseCIsOneLogic;
    uint64_t          il_MaxK;
    bool              ib_HaveSingleC;
-   
+
    uint32_t          ii_KernelWorkSize;
    uint32_t          ii_ChunksPerGpuWorker;
    uint32_t          ii_KernelCount;
    uint32_t          ii_MaxGpuFactors;
    uint32_t         *ii_SubseqIdx;
-   
+
    GpuKernel       **ip_Kernel;
-   
+
    uint64_t        **il_Primes;
    uint64_t        **il_Ks;
    int64_t         **il_Cs;

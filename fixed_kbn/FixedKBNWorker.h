@@ -35,7 +35,7 @@ private:
    uint64_t          il_K;
    uint32_t          ii_Base;
    uint32_t          ii_N;
-   
+
    int64_t           il_MinC;
    int64_t           il_MaxC;
 };

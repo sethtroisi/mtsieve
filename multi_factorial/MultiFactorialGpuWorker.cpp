@@ -18,14 +18,14 @@ MultiFactorialGpuWorker::MultiFactorialGpuWorker(uint32_t myId, App *theApp) : W
    uint32_t    defineCount = 0, idx;
 
    ib_GpuWorker = true;
-   
+
    ip_MultiFactorialApp = (MultiFactorialApp *) theApp;
 
    ii_MinN = ip_MultiFactorialApp->GetMinN();
    ii_MaxN = ip_MultiFactorialApp->GetMaxN();
    ii_MaxGpuSteps = ip_MultiFactorialApp->GetMaxGpuSteps();
    ii_MultiFactorial = ip_MultiFactorialApp->GetMultiFactorial();
-   
+
    ii_MaxGpuFactors = ip_MultiFactorialApp->GetMaxGpuFactors();
 
    sprintf(defines[defineCount++], "#define D_MIN_N %d", ii_MinN);
@@ -33,24 +33,24 @@ MultiFactorialGpuWorker::MultiFactorialGpuWorker(uint32_t myId, App *theApp) : W
    sprintf(defines[defineCount++], "#define D_MAX_STEPS %d", ii_MaxGpuSteps);
    sprintf(defines[defineCount++], "#define D_MULTIFACTORIAL %d", ii_MultiFactorial);
    sprintf(defines[defineCount++], "#define D_MAX_FACTORS %d", ii_MaxGpuFactors);
-   
+
    for (idx=0; idx<defineCount; idx++)
       preKernelSources[idx] = defines[idx];
-   
+
    preKernelSources[idx] = 0;
 
    ip_Kernel = (GpuKernel *) ip_App->GetGpuDevice()->CreateKernel("mf_kernel", mf_kernel, preKernelSources);
 
    ip_MultiFactorialApp->SetGpuWorkGroupSize(ip_Kernel->GetWorkGroupSize());
-   
+
    ii_PrimesInList = ip_MultiFactorialApp->GetGpuPrimesPerWorker();
-   
+
    il_PrimeList = (uint64_t *) ip_Kernel->AddCpuArgument("primes", sizeof(uint64_t), ii_PrimesInList);
    il_RemainderList = (uint64_t *) ip_Kernel->AddGpuArgument("remainders", sizeof(uint64_t), 2*ii_PrimesInList);
    ii_Parameters = (uint32_t *) ip_Kernel->AddCpuArgument("parameters", sizeof(uint32_t), 5);
    ii_FactorCount = (uint32_t *) ip_Kernel->AddSharedArgument("factorCount", sizeof(uint32_t), 1);
    il_FactorList = (int64_t *) ip_Kernel->AddGpuArgument("factorList", sizeof(uint64_t), 4*ii_MaxGpuFactors);
-   
+
    ip_Kernel->PrintStatistics(0);
 
    // The thread can't start until initialization is done
@@ -96,24 +96,24 @@ void  MultiFactorialGpuWorker::TestMegaPrimeChunk(void)
       ii_Parameters[1] = startN;
 
       reportTime = time(NULL) + 60;
-      
+
       do
       {
          iteration++;
          ii_FactorCount[0] = 0;
-     
+
          ip_Kernel->Execute(ii_PrimesInList);
 
          for (ii=0; ii<ii_FactorCount[0]; ii++)
-         {  
+         {
             idx = ii*4;
-            
+
             n = (uint32_t) il_FactorList[idx+0];
             c = (int32_t) il_FactorList[idx+1];
             prime = il_FactorList[idx+2];
-         
+
             ip_MultiFactorialApp->ReportFactor(prime, n, c);
-            
+
             if ((ii+1) == ii_MaxGpuFactors)
                break;
          }
@@ -126,12 +126,12 @@ void  MultiFactorialGpuWorker::TestMegaPrimeChunk(void)
             ip_MultiFactorialApp->WriteToConsole(COT_SIEVE, "Thread %d has completed %d of %d iterations", ii_MyId, iteration, maxIterations);
             reportTime = time(NULL) + 60;
          }
-         
+
          // Set where the next range is starting.
          ii_Parameters[1] += (ii_MaxGpuSteps * ii_MultiFactorial);
       } while (ii_Parameters[1] <= ii_MaxN);
    }
-   
+
    SetLargestPrimeTested(il_PrimeList[ii_PrimesInList-1], ii_PrimesInList);
 }
 

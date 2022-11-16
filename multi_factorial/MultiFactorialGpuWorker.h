@@ -30,13 +30,13 @@ public:
 
 protected:
    MultiFactorialApp *ip_MultiFactorialApp;
-   
+
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
    uint32_t          ii_MaxGpuSteps;
    uint32_t          ii_MultiFactorial;
    uint32_t          ii_MaxGpuFactors;
-   
+
    // Variables used by the kernel
    uint64_t         *il_RemainderList;
    uint32_t         *ii_Parameters;

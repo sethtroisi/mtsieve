@@ -16,29 +16,29 @@ AlternatingFactorialGpuWorker::AlternatingFactorialGpuWorker(uint32_t myId, App 
    char        defines[10][50];
    const char *preKernelSources[10];
    uint32_t    idx, defineCount;
-   
+
    ib_GpuWorker = true;
-   
+
    ip_AlternatingFactorialApp = (AlternatingFactorialApp *) theApp;
-   
+
    ii_MaxGpuFactors = ip_AlternatingFactorialApp->GetMaxGpuFactors() + 10;
-   
+
    defineCount = 0;
    sprintf(defines[defineCount++], "#define D_MAX_FACTORS %u", ii_MaxGpuFactors);
    sprintf(defines[defineCount++], "#define D_MAX_N %u", ip_AlternatingFactorialApp->GetMaxN());
    sprintf(defines[defineCount++], "#define D_MAX_STEPS %u", ip_AlternatingFactorialApp->GetMaxGpuSteps());
-      
+
    for (idx=0; idx<defineCount; idx++)
       preKernelSources[idx] = defines[idx];
-   
+
    preKernelSources[idx] = 0;
-   
+
    ip_Kernel = (GpuKernel *) ip_App->GetGpuDevice()->CreateKernel("af_kernel", af_kernel, preKernelSources);
 
    ip_AlternatingFactorialApp->SetGpuWorkGroupSize(ip_Kernel->GetWorkGroupSize());
-   
+
    ii_PrimesInList = ip_AlternatingFactorialApp->GetGpuPrimesPerWorker();
-   
+
    il_PrimeList = (uint64_t *) ip_Kernel->AddCpuArgument("primes", sizeof(uint64_t), ii_PrimesInList);
    ii_Parameters = (uint32_t *) ip_Kernel->AddCpuArgument("parameters", sizeof(uint32_t), 4);
    il_FactorialResiduals = (uint64_t *) ip_Kernel->AddSharedArgument("factorialResiduals", sizeof(uint64_t), ii_PrimesInList);
@@ -63,27 +63,27 @@ void  AlternatingFactorialGpuWorker::TestMegaPrimeChunk(void)
    ii_Parameters[0] = 1;
 
    do
-   {      
+   {
       ii_FactorCount[0] = 0;
-      
+
       ip_Kernel->Execute(ii_PrimesInList);
 
       for (uint32_t ii=0; ii<ii_FactorCount[0]; ii++)
       {
          idx = ii*2;
-         
+
          term = (uint32_t) il_FactorList[idx+0];
          thePrime = il_FactorList[idx+1];
-         
+
          ip_AlternatingFactorialApp->ReportFactor(thePrime, term);
-         
+
          if ((ii+1) == ii_MaxGpuFactors)
             break;
       }
-   
+
       if (ii_FactorCount[0] >= ii_MaxGpuFactors)
          FatalError("Could not handle all GPU factors.  A range of p generated %u factors (limited to %u).  Use -M to increase max factors", ii_FactorCount[0], ii_MaxGpuFactors);
-      
+
       ii_Parameters[0] += ip_AlternatingFactorialApp->GetMaxGpuSteps();
    } while (ii_Parameters[0] < ip_AlternatingFactorialApp->GetMaxN());
 

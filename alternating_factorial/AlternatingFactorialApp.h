@@ -28,7 +28,7 @@ public:
    void              ValidateOptions(void);
    bool              ApplyFactor(uint64_t theFactor, const char *term);
    void              GetExtraTextForSieveStartedMessage(char *extraText);
-   
+
    uint32_t          GetMinN(void) { return ii_MinN; };
    uint32_t          GetMaxN(void) { return ii_MaxN; };
 
@@ -42,20 +42,20 @@ public:
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested) {};
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
-   
+
    Worker           *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
-   
-private:    
+
+private:
    void              VerifyFactor(uint64_t theFactor, uint32_t term);
-   
+
    std::vector<bool> iv_Terms;
- 
+
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
 

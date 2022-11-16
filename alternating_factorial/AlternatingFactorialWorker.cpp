@@ -16,7 +16,7 @@ extern "C" {
 AlternatingFactorialWorker::AlternatingFactorialWorker(uint32_t myId, App *theApp) : Worker(myId, theApp)
 {
    ip_AlternatingFactorialApp = (AlternatingFactorialApp *) theApp;
-   
+
    // The thread can't start until initialization is done
    ib_Initialized = true;
 }
@@ -29,14 +29,14 @@ void  AlternatingFactorialWorker::TestMegaPrimeChunk(void)
 {
    uint64_t  ps[4], maxPrime = ip_App->GetMaxPrime();
    uint32_t  gotFactor, maxN = ip_AlternatingFactorialApp->GetMaxN();
-      
+
    for (uint32_t pIdx=0; pIdx<ii_PrimesInList; pIdx+=4)
    {
       ps[0] = il_PrimeList[pIdx+0];
       ps[1] = il_PrimeList[pIdx+1];
       ps[2] = il_PrimeList[pIdx+2];
       ps[3] = il_PrimeList[pIdx+3];
-            
+
       gotFactor = afsieve(maxN, ps);
 
       if (gotFactor)
@@ -46,9 +46,9 @@ void  AlternatingFactorialWorker::TestMegaPrimeChunk(void)
          ExtractFactors(ps[2]);
          ExtractFactors(ps[3]);
       }
-      
+
       SetLargestPrimeTested(ps[3], 4);
-      
+
       if (ps[3] >= maxPrime)
          break;
    }
@@ -73,11 +73,11 @@ void  AlternatingFactorialWorker::ExtractFactors(uint64_t p)
    int64_t  up = p;
    int64_t  q, rem;
    int64_t  nm1term;
-   
+
    inverse = 1.0 / p;
    nm1term = 1;
    rem = 1;
-   
+
    for (n=2; n<=ip_AlternatingFactorialApp->GetMaxN(); n++)
    {
       qd = ((double) rem * (double) n);
@@ -90,7 +90,7 @@ void  AlternatingFactorialWorker::ExtractFactors(uint64_t p)
          rem += p;
       else if (rem >= up)
          rem -= p;
-      
+
       // rem = n! % p
       // nm1term = af(n-1) % p
       if (rem == nm1term)
@@ -101,6 +101,6 @@ void  AlternatingFactorialWorker::ExtractFactors(uint64_t p)
          nm1term = rem - nm1term;
       else
          nm1term = (rem + p - nm1term);
-      
+
    }
 }

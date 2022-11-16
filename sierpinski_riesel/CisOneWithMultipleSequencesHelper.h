@@ -1,10 +1,10 @@
 /* CisOneWithMultipleSequencesHelper.h -- (C) Mark Rodenkirch, January 2021
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
+
    This class is used if any sequence has abs(c) = 1.
 */
 
@@ -29,9 +29,9 @@ public:
    CisOneWithMultipleSequencesHelper(App *theApp, uint64_t largestPrimeTested);
 
    ~CisOneWithMultipleSequencesHelper(void) {};
-   
+
    Worker        *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
-   
+
    uint32_t      *GetCongruentSubseqIndices(void) { return ip_CongruentSubseqIndices; };
    uint32_t      *GetAllSubseqs(void) { return ip_AllSubseqs; };
    uint16_t      *GetAllLadders(void) { return ip_AllLadders; };
@@ -39,7 +39,7 @@ public:
    uint32_t       GetDim1(void) { return ii_Dim1; };
    uint32_t       GetDim2(void) { return ii_Dim2; };
    uint32_t       GetDim3(void) { return ii_Dim3; };
-   
+
 protected:
    double         RateQ(uint32_t Q, uint32_t s);
    double         EstimateWork(uint32_t Q, uint32_t s, uint32_t r);
@@ -56,13 +56,13 @@ protected:
    uint32_t       ii_Dim1;
    uint32_t       ii_Dim2;
    uint32_t       ii_Dim3;
-   
+
    uint32_t       ii_UsedSubseqEntries;
    uint32_t       ii_LadderEntries;
    uint32_t       ii_MaxSubseqEntries;
-   
+
    uint32_t      *ip_CongruentSubseqIndices;
-   
+
    uint32_t      *ip_AllSubseqs;
    uint16_t      *ip_AllLadders;
 };

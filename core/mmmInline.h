@@ -4,11 +4,11 @@
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
+
    This is a collection of inline functions to are used for
    Montgomery multiplication used by the framework.
 
-   Thanks to Yves Gallot for this implementation based upon 
+   Thanks to Yves Gallot for this implementation based upon
    Peter L. Montgomery, Modular multiplication without trial division, Math. Comp.44 (1985), 519–521.
 */
 
@@ -19,13 +19,13 @@ inline uint64_t   mmmInvert(uint64_t p)
 {
    uint64_t p_inv = 1;
    uint64_t prev = 0;
-   
+
    while (p_inv != prev)
    {
       prev = p_inv;
       p_inv *= (2 - p * p_inv);
    }
-   
+
    return p_inv;
 }
 
@@ -56,17 +56,17 @@ inline uint64_t   mmmSub(uint64_t resA, uint64_t resB, uint64_t p)
 inline uint64_t   mmmMulmod(uint64_t resA, uint64_t resB, uint64_t p, uint64_t q)
 {
    __uint128_t t1 = resA * __uint128_t(resB);
-   
+
    uint64_t m = uint64_t(t1) * q;
-   
+
    __uint128_t t2 = m * __uint128_t(p);
-   
+
    int64_t r = int64_t(t1 >> 64) - int64_t(t2 >> 64);
 
    if (r < 0)
       return (uint64_t) (r + p);
-      
-   return (uint64_t) r;      
+
+   return (uint64_t) r;
 }
 
 // Compute the residual of b ^ n (mod p)
@@ -75,7 +75,7 @@ inline uint64_t   mmmPowmod(uint64_t resB, uint64_t exp, uint64_t p, uint64_t q,
 {
    uint64_t x = resB;
    uint64_t y = resOne;
-   
+
    while (true)
    {
       if (exp & 1)
@@ -102,12 +102,12 @@ inline void   mmmPowmodX4(uint64_t *resB, uint64_t exp, uint64_t *p, uint64_t *q
    uint64_t resX1 = resB[1];
    uint64_t resX2 = resB[2];
    uint64_t resX3 = resB[3];
-   
+
    uint64_t resY0 = resOne[0];
    uint64_t resY1 = resOne[1];
    uint64_t resY2 = resOne[2];
    uint64_t resY3 = resOne[3];
-   
+
    while (true)
    {
       if (exp & 1)
@@ -128,7 +128,7 @@ inline void   mmmPowmodX4(uint64_t *resB, uint64_t exp, uint64_t *p, uint64_t *q
       resX2 = mmmMulmod(resX2, resX2, p[2], q[2]);
       resX3 = mmmMulmod(resX3, resX3, p[3], q[3]);
    }
-   
+
    resBexpP[0] = resY0;
    resBexpP[1] = resY1;
    resBexpP[2] = resY2;
@@ -139,13 +139,13 @@ inline void   mmmPowmodX4(uint64_t *resB, uint64_t exp, uint64_t *p, uint64_t *q
 inline uint64_t   mmm2exp64(uint64_t p, uint64_t q, uint64_t resOne)
 {
 	uint64_t t = mmmAdd(resOne, resOne, p);
-   
+
    // t = res 4 (mod p)
    t = mmmAdd(t, t, p);   // 4
-   
+
 	for (uint32_t i=0; i<5; i++)
       t = mmmMulmod(t, t, p, q);   // 4^{2^5} = 2^64
-      
+
 	// t = res 2^64 (mod p)
    return t;
 }
@@ -155,7 +155,7 @@ inline uint64_t   mmmNToRes(uint64_t n, uint64_t p, uint64_t q, uint64_t res2exp
 {
    if (n == 1)
       return mmmOne(p);
-    
+
    return mmmMulmod(n, res2exp64, p, q);
 }
 

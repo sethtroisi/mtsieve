@@ -4,11 +4,11 @@
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
+
    This is a collection of inline functions to are used for
    Montgomery multiplication used by the framework.
 
-   Thanks to Yves Gallot for this implementation based upon 
+   Thanks to Yves Gallot for this implementation based upon
    Peter L. Montgomery, Modular multiplication without trial division, Math. Comp.44 (1985), 519–521.
 */
 
@@ -55,7 +55,7 @@ inline uint64_t   mmmPowmod(uint64_t resB, uint64_t exp, uint64_t p, uint64_t q,
 {
    uint64_t x = resB;
    uint64_t y = resOne;
-   
+
    while (true)
    {
       if (exp & 1)
@@ -82,12 +82,12 @@ inline void   mmmPowmodX4(uint64_t *resB, uint64_t exp, uint64_t *p, uint64_t *q
    uint64_t resX1 = resB[1];
    uint64_t resX2 = resB[2];
    uint64_t resX3 = resB[3];
-   
+
    uint64_t resY0 = resOne[0];
    uint64_t resY1 = resOne[1];
    uint64_t resY2 = resOne[2];
    uint64_t resY3 = resOne[3];
-   
+
    while (true)
    {
       if (exp & 1)
@@ -108,7 +108,7 @@ inline void   mmmPowmodX4(uint64_t *resB, uint64_t exp, uint64_t *p, uint64_t *q
       resX2 = mmmMulmod(resX2, resX2, p[2], q[2]);
       resX3 = mmmMulmod(resX3, resX3, p[3], q[3]);
    }
-   
+
    resBexpP[0] = resY0;
    resBexpP[1] = resY1;
    resBexpP[2] = resY2;

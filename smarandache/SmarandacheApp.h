@@ -45,27 +45,27 @@ public:
    bool              ReportFactor(uint64_t theFactor, uint32_t n);
 
    terms_t          *GetTerms(void);
-   
+
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested) {};
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
-   
+
    Worker           *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
-   
+
 private:
    void              VerifyFactor(uint64_t theFactor, uint32_t n);
-   
+
    std::vector<bool> iv_Terms;
 
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          ii_MaxGpuSteps;
    uint32_t          ii_MaxGpuFactors;

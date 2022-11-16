@@ -32,7 +32,7 @@ OpenCLDevice::OpenCLDevice(void)
 
    status = clGetPlatformIDs(0, NULL, &ii_PlatformCount);
 
-   OpenCLErrorChecker::ExitIfError("clGetPlatformIDs", status, "%s\n%s", 
+   OpenCLErrorChecker::ExitIfError("clGetPlatformIDs", status, "%s\n%s",
       "Please (re)install OpenCL as described at",
       "http://developer.amd.com/gpu/ATIStreamSDK/assets/ATI_Stream_SDK_Installation_Notes.pdf");
 
@@ -52,7 +52,7 @@ OpenCLDevice::~OpenCLDevice(void)
 
    for (pp=0; pp<ii_PlatformCount; pp++)
       clReleaseContext(ip_Platforms[pp].context);
-   
+
    for (ii=0; ii<ii_PlatformCount; ii++)
       xfree(ip_Platforms[ii].devices);
 
@@ -64,7 +64,7 @@ void  OpenCLDevice::Help(void)
    printf("-D --platform=D       Use platform D instead of 0\n");
    printf("-d --device=d         Use device d instead of 0\n");
    printf("-H --showgpudetail    Show device and kernel details\n");
-   
+
    ListAllOpenCLDevices();
 }
 
@@ -115,7 +115,7 @@ void  *OpenCLDevice::CreateKernel(const char *kernelName, const char *kernelSour
 void OpenCLDevice::GetPlatforms(void)
 {
    cl_int      status;
-   cl_platform_id *platforms; 
+   cl_platform_id *platforms;
    cl_uint     ii;
 
    platforms = (cl_platform_id *) xmalloc(sizeof(cl_platform_id) * ii_PlatformCount);
@@ -177,7 +177,7 @@ void OpenCLDevice::GetDevicesForPlatform(platform_t *thePlatform)
       return;
 
    devices = (cl_device_id *) xmalloc(deviceListSize);
- 
+
    status = clGetContextInfo(thePlatform->context, CL_CONTEXT_DEVICES, deviceListSize, devices, NULL);
    OpenCLErrorChecker::ExitIfError("clGetContextInfo", status, "Unable to get device list");
 
@@ -228,7 +228,7 @@ void OpenCLDevice::ListAllOpenCLDevices(void)
          fprintf(stderr, "   No devices\n");
 
       for (dd=0; dd<ip_Platforms[pp].deviceCount; dd++)
-         fprintf(stderr, "   Device %d is a %s %s\n", dd, ip_Platforms[pp].devices[dd].vendor,  
+         fprintf(stderr, "   Device %d is a %s %s\n", dd, ip_Platforms[pp].devices[dd].vendor,
                  ip_Platforms[pp].devices[dd].name);
    }
 }

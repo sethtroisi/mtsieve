@@ -44,7 +44,7 @@ HashTable::HashTable(uint32_t elements)
 HashTable::HashTable(uint32_t elements, uint32_t bestQ, uint32_t powerResidueLcm)
 {
    uint32_t bjLen;
-   
+
    assert(elements <= HASH_MAX_ELTS);
 
    if (elements < HASH_MINIMUM_ELTS)
@@ -56,7 +56,7 @@ HashTable::HashTable(uint32_t elements, uint32_t bestQ, uint32_t powerResidueLcm
    // Double size of hashtable if it will fit into L1 cache
    if (hsize*sizeof(uint16_t) < L1_CACHE_SIZE*1024 && hsize <= elements/HASH_MIN_DENSITY/2)
       hsize *= 2;
-      
+
    if (hsize*sizeof(uint16_t)*2 < L1_CACHE_SIZE*1024 && hsize <= elements/HASH_MIN_DENSITY/2)
       hsize *= 2;
 

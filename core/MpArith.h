@@ -4,8 +4,8 @@
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
-   Thanks to Yves Gallot for this implementation based upon 
+
+   Thanks to Yves Gallot for this implementation based upon
    Peter L. Montgomery, Modular multiplication without trial division, Math. Comp.44 (1985), 519–521.
 */
 
@@ -21,7 +21,7 @@ class MpArith
 private:
    const uint64_t _p;
    const uint64_t _q;
-   const MpRes _one; 
+   const MpRes _one;
    MpRes _r2exp64;
 
 private:
@@ -64,24 +64,24 @@ public:
 #endif
    {
       MpRes t = add(_one, _one);
-      
+
       t = add(t, t); // 4
 		for (size_t i = 0; i < 5; ++i)
          t = mul(t, t); // 4^{2^5} = 2^64
-         
+
 		_r2exp64 = t;
-   } 
+   }
 
    uint64_t p() const { return _p; }
-   
+
    MpRes one() const { return _one; }
-   
+
    MpRes zero() const { return (MpRes) 0; }
 
    MpRes add(const MpRes a, const MpRes b) const
    {
       MpRes r;
-      
+
       const uint64_t c = (a >= _p - b) ? _p : 0;
 
       r = a + b - c;
@@ -92,7 +92,7 @@ public:
    MpRes sub(const MpRes a, const MpRes b) const
    {
       MpRes r;
-      
+
       const uint64_t c = (a < b) ? _p : 0;
 
       r = a - b + c;
@@ -103,7 +103,7 @@ public:
    MpRes mul(const MpRes a, const MpRes b) const
    {
       MpRes r;
-      
+
       r = REDC(a * __uint128_t(b));
 
       return r;
@@ -127,11 +127,11 @@ public:
 
          x = REDC(x * __uint128_t(x));
       }
-      
+
       r = y;
       return r;
 	}
-   
+
    // Compute the residual of n (mod p)
    MpRes nToRes(uint64_t n)
    {
@@ -140,7 +140,7 @@ public:
 #else
       if (n == 1)
          return _one;
-       
+
       return mul(n, _r2exp64);
 #endif
    }
@@ -151,9 +151,9 @@ public:
       return res;
 #else
       MpRes r;
-      
+
       r = REDC(res);
-      
+
       return r;
 #endif
    }

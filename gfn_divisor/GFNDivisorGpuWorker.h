@@ -29,9 +29,9 @@ protected:
 
 private:
    GFNDivisorApp    *ip_GFNDivisorApp;
-      
+
    GpuKernel        *ip_Kernel;
-   
+
    uint64_t          il_MinK;
    uint64_t          il_MaxK;
    uint32_t          ii_MinN;
@@ -39,7 +39,7 @@ private:
    uint32_t          ii_MaxGpuSteps;
    uint32_t          ii_MaxGpuFactors;
    uint32_t          ii_MaxIterations;
-   
+
    uint32_t         *ii_Parameters;
    uint64_t         *il_Remainders;
    uint32_t         *ii_FactorCount;

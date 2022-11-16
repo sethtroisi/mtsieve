@@ -28,12 +28,12 @@ public:
 protected:
    bool              TestSixDigitN(void);
    bool              TestSevenDigitN(void);
-   
+
    SmarandacheApp   *ip_SmarandacheApp;
-   
+
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
-   
+
    terms_t          *ip_Terms;
 };
 

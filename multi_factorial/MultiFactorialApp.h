@@ -35,7 +35,7 @@ public:
    void              ValidateOptions(void);
    bool              ApplyFactor(uint64_t theFactor, const char *term);
    void              GetExtraTextForSieveStartedMessage(char *extraText);
-   
+
    bool              IsMultiFactorial(void) { return (ii_MultiFactorial > 1); };
    uint32_t          GetMultiFactorial(void) { return ii_MultiFactorial; };
    uint32_t          GetMinN(void) { return ii_MinN; };
@@ -49,30 +49,30 @@ public:
    bool              ReportFactor(uint64_t theFactor, uint32_t n, int32_t c);
 
    terms_t          *GetTerms(void);
-   
+
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested) {};
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
-   
+
    Worker           *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
-   
+
 
 private:
    void              VerifyFactor(uint64_t theFactor, uint32_t n, int32_t c);
-   
+
    std::vector<bool> iv_PlusTerms;
    std::vector<bool> iv_MinusTerms;
 
    uint32_t          ii_MultiFactorial;
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          ii_MaxGpuSteps;
    uint32_t          ii_MaxGpuFactors;

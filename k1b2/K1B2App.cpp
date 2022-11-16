@@ -80,7 +80,7 @@ parse_t K1B2App::ParseOption(int opt, char *arg, const char *source)
       case 'C':
          status = Parser::Parse(arg, -CMAX_MAX, CMAX_MAX, il_MaxC);
          break;
-         
+
       case 'n':
          status = Parser::Parse(arg, 1, NMAX_MAX, ii_MinN);
          break;
@@ -97,25 +97,25 @@ void K1B2App::ValidateOptions(void)
 {
    uint32_t nCount;
    uint64_t cCount;
-   
+
    if (is_OutputTermsFileName.length() == 0)
       is_OutputTermsFileName = "k1b2.pfgw";
 
    if (is_InputTermsFileName.length() > 0)
-   {     
+   {
       ProcessInputTermsFile(false);
-            
+
       nCount = ii_MaxN - ii_MinN + 1;
       cCount = il_MaxC - il_MinC + 1;
-      
+
       iv_Terms.resize(nCount);
-      
+
       for (uint32_t n=ii_MinN; n<=ii_MaxN; n++)
       {
          iv_Terms[n-ii_MinN].resize(cCount);
          std::fill(iv_Terms[n-ii_MinN].begin(), iv_Terms[n-ii_MinN].end(), false);
       }
-            
+
       ProcessInputTermsFile(true);
    }
    else
@@ -125,36 +125,36 @@ void K1B2App::ValidateOptions(void)
 
       if (il_MaxC == 0)
          FatalError("cmax must be specified");
-      
+
       if (ii_MinN == 0)
          FatalError("nmin must be specified");
 
       if (ii_MaxN == 0)
          FatalError("nmax must be specified");
-      
+
       if (il_MaxC <= il_MinC)
          FatalError("cmax must be greater than cmin");
-      
+
       if (ii_MaxN < ii_MinN)
          FatalError("nmax must be greater than nmin");
 
       if (!(il_MinC & 1))
          il_MinC++;
-      
+
       if (!(il_MaxC & 1))
          il_MaxC--;
 
       nCount = ii_MaxN - ii_MinN + 1;
       cCount = il_MaxC - il_MinC + 1;
-      
+
       il_TermCount = 0;
       iv_Terms.resize(nCount);
-      
+
       for (uint32_t n=ii_MinN; n<=ii_MaxN; n++)
       {
          iv_Terms[n-ii_MinN].resize(cCount);
          std::fill(iv_Terms[n-ii_MinN].begin(), iv_Terms[n-ii_MinN].end(), false);
-         
+
          for (int64_t c=il_MinC; c<=il_MaxC; c+=2)
          {
             iv_Terms[n-ii_MinN][c-il_MinC] = true;
@@ -162,18 +162,18 @@ void K1B2App::ValidateOptions(void)
          }
       }
    }
-   
+
    FactorApp::ParentValidateOptions();
 
    // Since the worker wants primes in groups of 4
    while (ii_CpuWorkSize % 4 != 0)
       ii_CpuWorkSize++;
-   
-   // Allow only one worker to do work when processing small primes.  This allows us to avoid 
-   // locking when factors are reported, which significantly hurts performance as most terms 
+
+   // Allow only one worker to do work when processing small primes.  This allows us to avoid
+   // locking when factors are reported, which significantly hurts performance as most terms
    // will be removed due to small primes.
    SetMaxPrimeForSingleWorker(10000);
-   
+
    SetMinGpuPrime(il_MaxC+1);
 }
 
@@ -201,20 +201,20 @@ void K1B2App::ProcessInputTermsFile(bool haveBitMap)
 
    if (fgets(buffer, sizeof(buffer), fPtr) == NULL)
       FatalError("No data in input file %s", is_InputTermsFileName.c_str());
-   
+
    if (!haveBitMap)
       il_MinC = il_MaxC = 0;
-   
+
    if (!memcmp(buffer, "ABC ", 4))
    {
       if (sscanf(buffer, "ABC 2^$a$b // Sieved to %" SCNu64"", &lastPrime) != 1)
          FatalError("Line 1 is not a valid ABCD line in input file %s", is_InputTermsFileName.c_str());
-      
+
       SetMinPrime(lastPrime);
    }
    else
       FatalError("Input file %s has unknown format", is_InputTermsFileName.c_str());
-   
+
    while (fgets(buffer, sizeof(buffer), fPtr) != NULL)
    {
       if (!StripCRLF(buffer))
@@ -222,7 +222,7 @@ void K1B2App::ProcessInputTermsFile(bool haveBitMap)
 
       if (sscanf(buffer, "%u %" SCNd64"", &n, &c) != 2)
          FatalError("Line %s is malformed", buffer);
-    
+
       if (haveBitMap)
       {
          iv_Terms[n-ii_MinN][c-il_MinC] = true;
@@ -239,7 +239,7 @@ void K1B2App::ProcessInputTermsFile(bool haveBitMap)
 
          if (n < ii_MinN) ii_MinN = n;
          if (n > ii_MaxN) ii_MaxN = n;
-         
+
          if (c < il_MinC) il_MinC = c;
          if (c > il_MaxC) il_MaxC = c;
       }
@@ -252,16 +252,16 @@ bool  K1B2App::ApplyFactor(uint64_t theFactor, const char *term)
 {
    uint32_t n;
    int64_t  c;
-   
+
    if (sscanf(term, "2^%u%" SCNd64"", &n, &c) != 2)
       FatalError("Could not parse term %s", term);
 
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-        
+
    if (c < il_MinC || c > il_MaxC)
       return false;
-   
+
    // No locking is needed because the Workers aren't running yet
    if (iv_Terms[n-ii_MinN][c-il_MinC])
    {
@@ -270,7 +270,7 @@ bool  K1B2App::ApplyFactor(uint64_t theFactor, const char *term)
 
       return true;
    }
-      
+
    return false;
 }
 
@@ -279,16 +279,16 @@ void K1B2App::WriteOutputTermsFile(uint64_t largestPrime)
    uint64_t termsCounted = 0;
    uint32_t n;
    int64_t  c;
-   
+
    FILE    *termsFile = fopen(is_OutputTermsFileName.c_str(), "w");
 
    if (!termsFile)
       FatalError("Unable to open input file %s", is_OutputTermsFileName.c_str());
-   
+
    ip_FactorAppLock->Lock();
-   
+
    fprintf(termsFile, "ABC 2^$a$b // Sieved to %" PRIu64"\n", largestPrime);
-   
+
    for (n=ii_MinN; n<=ii_MaxN; n++)
       for (c=il_MinC; c<=il_MaxC; c++)
       {
@@ -308,7 +308,7 @@ void K1B2App::WriteOutputTermsFile(uint64_t largestPrime)
 }
 
 void  K1B2App::GetExtraTextForSieveStartedMessage(char *extraText)
-{ 
+{
    sprintf(extraText, "%u <= n <= %u, %" PRId64" <= c <= %" PRId64", 2^n+c", ii_MinN, ii_MaxN, il_MinC, il_MaxC);
 }
 
@@ -316,26 +316,26 @@ bool  K1B2App::ReportFactor(uint64_t theFactor, uint32_t n, int64_t c)
 {
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-   
+
    if (c < il_MinC || c > il_MaxC)
       return false;
-   
+
    bool removedTerm = false;
-   
+
    if (theFactor > GetMaxPrimeForSingleWorker())
       ip_FactorAppLock->Lock();
-      
+
    if (iv_Terms[n-ii_MinN][c-il_MinC])
    {
       iv_Terms[n-ii_MinN][c-il_MinC] = false;
-      
+
       il_FactorCount++;
       il_TermCount--;
-      
+
       LogFactor(theFactor, "2^%u%+" PRId64"", n, c);
       removedTerm = true;
    }
-   
+
    if (theFactor > GetMaxPrimeForSingleWorker())
       ip_FactorAppLock->Release();
 

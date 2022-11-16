@@ -35,12 +35,12 @@ protected:
    uint32_t          ii_MaxSteps;
    uint32_t          ii_MaxGpuFactors;
    uint32_t          ii_GroupSize;
-   
+
    uint32_t         *ii_e1DigitList;
    uint32_t         *ii_e3DigitList;
    uint32_t         *ii_e6DigitList;
    uint32_t         *ii_e9DigitList;
-   
+
    uint64_t         *il_Residuals;
    uint32_t         *ii_DigitList;
    uint32_t         *ii_FactorCount;

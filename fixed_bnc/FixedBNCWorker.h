@@ -37,11 +37,11 @@ private:
    void              DeterminePrimeTermRange(void);
 
    FixedBNCApp      *ip_FixedBNCApp;
-   
+
    uint32_t         *ii_BaseInverses;
    uint64_t         *il_PrimeList;
    uint32_t         *ii_InverseList;
-   
+
    uint64_t          il_BpowN;
    uint64_t          il_MinK;
    uint64_t          il_MaxK;

@@ -14,13 +14,13 @@
 K1B2Worker::K1B2Worker(uint32_t myId, App *theApp) : Worker(myId, theApp)
 {
    ip_K1B2App = (K1B2App *) theApp;
-         
+
    ii_MinN = ip_K1B2App->GetMinN();
    ii_MaxN = ip_K1B2App->GetMaxN();
-   
+
    il_MinC = ip_K1B2App->GetMinC();
    il_MaxC = ip_K1B2App->GetMaxC();
-   
+
    // The thread can't start until initialization is done
    ib_Initialized = true;
 }
@@ -36,14 +36,14 @@ void  K1B2Worker::TestMegaPrimeChunk(void)
    uint64_t maxPrime = ip_App->GetMaxPrime();
    uint32_t n;
    bool     useSmallPLogic = true;
-   
+
    for (uint32_t pIdx=0; pIdx<ii_PrimesInList; pIdx+=4)
    {
       ps[0] = il_PrimeList[pIdx+0];
       ps[1] = il_PrimeList[pIdx+1];
       ps[2] = il_PrimeList[pIdx+2];
       ps[3] = il_PrimeList[pIdx+3];
-      
+
       if (useSmallPLogic)
       {
          if ((int64_t) ps[0] > (il_MaxC - il_MinC + 1))
@@ -51,7 +51,7 @@ void  K1B2Worker::TestMegaPrimeChunk(void)
       }
 
       twoExpN[0] = twoExpN[1] = twoExpN[2] = twoExpN[3] = 2;
-      
+
       fpu_powmod_4b_1n_4p(twoExpN, ii_MinN, ps);
 
       n = ii_MinN;
@@ -72,24 +72,24 @@ void  K1B2Worker::TestMegaPrimeChunk(void)
             RemoveTermsLargeP(ps[2], n, twoExpN[2]);
             RemoveTermsLargeP(ps[3], n, twoExpN[3]);
          }
-         
+
          // Multiple each term by 2.
          twoExpN[0] <<= 1;
          twoExpN[1] <<= 1;
          twoExpN[2] <<= 1;
          twoExpN[3] <<= 1;
-    
+
          // If we have exceeded p, then subtract p.
          if (twoExpN[0] >= ps[0]) twoExpN[0] -= ps[0];
          if (twoExpN[1] >= ps[1]) twoExpN[1] -= ps[1];
          if (twoExpN[2] >= ps[2]) twoExpN[2] -= ps[2];
          if (twoExpN[3] >= ps[3]) twoExpN[3] -= ps[3];
-         
+
          n++;
       }
 
       SetLargestPrimeTested(ps[3], 4);
-      
+
       if (ps[3] > maxPrime)
          break;
    }
@@ -103,9 +103,9 @@ void  K1B2Worker::TestMiniPrimeChunk(uint64_t *miniPrimeChunk)
 void    K1B2Worker::RemoveTermsSmallP(uint64_t prime, uint32_t n, uint64_t twoExpN)
 {
    int64_t  c;
-   
+
    fpu_push_1divp(prime);
-   
+
    // 2^n (mod p) = twoExpN
    // 2^n - twoExpN (mod p) = 0
    // 2^n + (p - twoExpN) (mod p) = 0
@@ -114,36 +114,36 @@ void    K1B2Worker::RemoveTermsSmallP(uint64_t prime, uint32_t n, uint64_t twoEx
    // Since p > twoExpN, c is positive
    // 2^n + c (mod p) = 0
    c = (int64_t) (prime - twoExpN);
-   
+
    // Set c to an odd value
    if (!(c & 1))
       c += (int64_t) prime;
 
-   do 
+   do
    {
       // 2^n + c (mod p) = 0
       if (ip_K1B2App->ReportFactor(prime, n, c))
          VerifyFactor(prime, n, c);
-      
+
       c += (int64_t) (prime << 1);
    } while (c <= il_MaxC);
-   
+
    c = (int64_t) (prime - twoExpN);
-   
+
    // Set c to an odd value
    if (!(c & 1))
       c -= (int64_t) prime;
-   
-   do 
+
+   do
    {
       // 2^n + c (mod p) = 0
       if (ip_K1B2App->ReportFactor(prime, n, c))
          VerifyFactor(prime, n, c);
-      
+
       c -= (int64_t) (prime << 1);
    } while (c >= il_MinC);
-   
-   
+
+
    fpu_pop();
 }
 
@@ -167,11 +167,11 @@ void    K1B2Worker::RemoveTermsLargeP(uint64_t prime, uint32_t n, uint64_t twoEx
       VerifyFactor(prime, n, c);
       fpu_pop();
    }
-   
+
    // 2^n + (c - p) (mod p) = 0
    // Set c = c - p, c is negative
    c -= (int64_t) prime;
-   
+
    // 2^n + (c-p) (mod p) = 0
    if (c >= il_MinC && ip_K1B2App->ReportFactor(prime, n, c))
    {
@@ -186,15 +186,15 @@ void  K1B2Worker::VerifyFactor(uint64_t prime, uint32_t n, int64_t c)
    int64_t  rem;
 
    rem = fpu_powmod(2, n, prime);
-   
+
    rem += c;
 
    while (rem < 0)
       rem += (int64_t) prime;
-   
+
    while (rem >= (int64_t) prime)
       rem -= (int64_t) prime;
-   
+
    if (rem != 0)
       FatalError("2^%u%+" PRId64" mod %" PRIu64" = %" PRIu64"", n, c, prime, rem);
 }

@@ -27,11 +27,11 @@ public:
 
 protected:
 
-private:   
+private:
    AlternatingFactorialApp      *ip_AlternatingFactorialApp;
 
    uint32_t          ii_MaxGpuFactors;
-   
+
    uint64_t         *il_FactorialResiduals;
    uint64_t         *il_AltFactorialResiduals;
    uint32_t         *ii_FactorCount;

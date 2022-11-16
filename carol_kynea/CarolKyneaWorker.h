@@ -34,15 +34,15 @@ public:
    void              CleanUp(void);
    void              TestMegaPrimeChunk(void);
    void              TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
-   
+
    void              VerifyFactor(uint64_t p, uint32_t n, int32_t c);
-   
+
 protected:
 
 private:
    CarolKyneaApp    *ip_CarolKyneaApp;
    HashTable        *ip_HashTable;
-   
+
    void              DiscreteLog(uint64_t p);
    uint32_t          BabySteps(uint64_t b, uint64_t bj0, uint64_t p);
    uint64_t          FindRoot(uint64_t p);
@@ -51,7 +51,7 @@ private:
    uint32_t          ii_Base;
    uint32_t          ii_MinN;
    uint32_t          ii_MaxN;
-   
+
    uint32_t          ii_BabySteps;
    uint32_t          ii_GiantSteps;
 
@@ -59,9 +59,9 @@ private:
    uint32_t          ii_SieveRange;
 
    seq_t             io_Sequence[ROOT_COUNT];
-      
+
    uint64_t          il_A[ROOT_COUNT];
-};    
+};
 
 #endif
 

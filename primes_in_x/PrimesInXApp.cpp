@@ -45,7 +45,7 @@ PrimesInXApp::PrimesInXApp() : FactorApp()
 
    // This is because the assembly code is using SSE to do the mulmods
    SetAppMaxPrime(PMAX_MAX_52BIT);
-   
+
    ii_MinLength = 0;
    ii_MinLengthRemaining = 0;
    ii_MaxLength = 0;
@@ -53,7 +53,7 @@ PrimesInXApp::PrimesInXApp() : FactorApp()
    is_SearchString = "";
    is_FullTerm = "";
    is_StringFileName = "";
-   
+
    ii_e1TermCount = ii_e3TermCount = ii_e6TermCount = ii_e9TermCount = 0;
    ii_e1Terms = ii_e3Terms = ii_e6Terms = ii_e9Terms = 0;
 
@@ -70,7 +70,7 @@ PrimesInXApp::~PrimesInXApp()
    if (ii_e6Terms) xfree(ii_e6Terms);
    if (ii_e9Terms) xfree(ii_e9Terms);
 }
-   
+
 void PrimesInXApp::Help(void)
 {
    FactorApp::ParentHelp();
@@ -79,7 +79,7 @@ void PrimesInXApp::Help(void)
    printf("-L --maxlength=L      maximum length to search\n");
    printf("-s --stringfile=s     file containing a decimal representation of any number\n");
    printf("-S --searchstring=S   starting point of substring to start factoring\n");
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    printf("-N --step=N           max steps iterated per call to GPU (default %d)\n", ii_MaxGpuSteps);
    printf("-M --maxfactors=M     max number of factors to support per GPU worker chunk (default %u)\n", ii_MaxGpuFactors);
@@ -98,7 +98,7 @@ void  PrimesInXApp::AddCommandLineOptions(string &shortOpts, struct option *long
    AppendLongOpt(longOpts, "searchstring",  required_argument, 0, 'S');
    AppendLongOpt(longOpts, "inputfile",     required_argument, 0, 'i');
    AppendLongOpt(longOpts, "outputfile",    required_argument, 0, 'o');
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    AppendLongOpt(longOpts, "steps",         required_argument, 0, 'N');
    AppendLongOpt(longOpts, "maxfactors",        required_argument, 0, 'M');
@@ -127,12 +127,12 @@ parse_t PrimesInXApp::ParseOption(int opt, char *arg, const char *source)
          is_StringFileName = arg;
          status = P_SUCCESS;
          break;
-         
+
       case 'S':
          is_SearchString = arg;
          status = P_SUCCESS;
          break;
-         
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
       case 'N':
          status = Parser::Parse(arg, 100, 1000000000, ii_MaxGpuSteps);
@@ -148,7 +148,7 @@ parse_t PrimesInXApp::ParseOption(int opt, char *arg, const char *source)
 }
 
 void PrimesInXApp::ValidateOptions(void)
-{ 
+{
    if (is_OutputTermsFileName.length() == 0)
       FatalError("An output file name must be specified");
 
@@ -157,27 +157,27 @@ void PrimesInXApp::ValidateOptions(void)
       ProcessInputTermsFile(false);
 
       il_TermCount = ii_MaxLength - ii_MinLength + 1;
-      
+
       iv_Terms.resize(il_TermCount);
       std::fill(iv_Terms.begin(), iv_Terms.end(), false);
-      
+
       ProcessInputTermsFile(true);
    }
    else
    {
       if (is_StringFileName.length() == 0)
-         FatalError("The string file name must be specified");  
-  
+         FatalError("The string file name must be specified");
+
       ProcessInputStringFile();
-   
+
       if (ii_MinLength > ii_MaxLength)
          FatalError("Min length must be less than max length.");
-      
+
       if (ii_MinLength < is_SearchString.length())
          ii_MinLength = is_SearchString.length();
-      
+
       il_TermCount = ii_MaxLength - ii_MinLength + 1;
-      
+
       iv_Terms.resize(il_TermCount);
       std::fill(iv_Terms.begin(), iv_Terms.end(), true);
    }
@@ -193,7 +193,7 @@ Worker *PrimesInXApp::CreateWorker(uint32_t id, bool gpuWorker, uint64_t largest
 {
    Worker *theWorker;
 
-#if defined(USE_OPENCL) || defined(USE_METAL)  
+#if defined(USE_OPENCL) || defined(USE_METAL)
    if (gpuWorker)
       theWorker = new PrimesInXGpuWorker(id, this);
    else
@@ -207,7 +207,7 @@ void PrimesInXApp::ProcessInputStringFile(void)
 {
    FILE  *fPtr;
    char  *buffer, *pos;
-   
+
    // Assume that nobody will ever specify and lmax greater than 100000000
    // because those PRP tests would take many days.
    buffer = (char *) xmalloc(100000000);
@@ -216,7 +216,7 @@ void PrimesInXApp::ProcessInputStringFile(void)
 
    if (fPtr == NULL)
       FatalError("Error reading input file `%s'", is_StringFileName.c_str());
-     
+
    fgets(buffer, 100000000, fPtr);
    fclose(fPtr);
 
@@ -252,15 +252,15 @@ void PrimesInXApp::ProcessInputTermsFile(bool haveBitMap)
          pos = strstr(buffer, "//");
          if (pos)
          {
-            if (sscanf(pos+13, "%" SCNu64"", &minPrime) == 1)      
+            if (sscanf(pos+13, "%" SCNu64"", &minPrime) == 1)
                SetMinPrime(minPrime);
          }
- 
+
          if (haveBitMap)
             BuildTerms(buffer+8);
          continue;
       }
-      
+
       if (sscanf(buffer, "%u", &c) != 1)
          FatalError("Line %s is malformed", buffer);
 
@@ -269,7 +269,7 @@ void PrimesInXApp::ProcessInputTermsFile(bool haveBitMap)
 
       if (c > ii_MaxLength)
          ii_MaxLength = c;
-      
+
       if (haveBitMap)
       {
          iv_Terms[BIT(c)] = true;
@@ -285,17 +285,17 @@ void PrimesInXApp::ProcessInputTermsFile(bool haveBitMap)
 bool  PrimesInXApp::ApplyFactor(uint64_t theFactor, const char *term)
 {
    uint32_t n;
-   
+
    if (sscanf(term, "pix(%u)", &n) != 1)
       FatalError("Could not parse term %s\n", term);
 
    if (n < ii_MinLength || n > ii_MaxLength)
       return false;
-   
+
    VerifyFactor(theFactor, n);
-   
+
    uint64_t bit = BIT(n);
-   
+
    // No locking is needed because the Workers aren't running yet
    if (iv_Terms[bit])
    {
@@ -304,7 +304,7 @@ bool  PrimesInXApp::ApplyFactor(uint64_t theFactor, const char *term)
 
       return true;
    }
-      
+
    return false;
 }
 
@@ -331,16 +331,16 @@ void  PrimesInXApp::BuildTerms(char *inputTerm)
       charTerms[index] = x;
 
       ii_e1Terms[ii_e1TermCount] = x - '0';
-      
+
       ii_e3Terms[ii_e3TermCount] *= 10;
       ii_e3Terms[ii_e3TermCount] += (x - '0');
-      
+
       ii_e6Terms[ii_e6TermCount] *= 10;
       ii_e6Terms[ii_e6TermCount] += (x - '0');
-      
+
       ii_e9Terms[ii_e9TermCount] *= 10;
       ii_e9Terms[ii_e9TermCount] += (x - '0');
-      
+
       ii_e1TermCount++;
 
       index++;
@@ -349,19 +349,19 @@ void  PrimesInXApp::BuildTerms(char *inputTerm)
       if ((index % 3) == 0) ii_e3TermCount++;
       if ((index % 6) == 0) ii_e6TermCount++;
       if ((index % 9) == 0) ii_e9TermCount++;
-         
+
       if (index == ii_MaxLength)
          break;
    }
-  
+
    if (ii_MinLength > index)
       FatalError("Starting length is longer than the nubmer of digits in the string.");
-   
+
    if (index < ii_MaxLength) {
       ii_MaxLength = index;
       WriteToConsole(COT_OTHER, "Adjusting maxlength to %u, the length of the longest term to factor\n", ii_MaxLength);
    }
-   
+
    charTerms[index] = 0;
    is_FullTerm = charTerms;
    xfree(charTerms);
@@ -376,30 +376,30 @@ void  PrimesInXApp::BuildTerms(char *inputTerm)
 uint32_t	*PrimesInXApp::Get3DigitTermsCopy(void)
 {
    uint32_t *ptr;
-   
+
    ptr = (uint32_t *) xmalloc((size_t) (ii_MaxLength/3+32)*sizeof(uint32_t));
    memcpy(ptr, ii_e3Terms, (size_t) (ii_MaxLength/3+32)*sizeof(uint32_t));
-   
+
    return ptr;
 }
 
 uint32_t	*PrimesInXApp::Get6DigitTermsCopy(void)
 {
    uint32_t *ptr;
-   
+
    ptr = (uint32_t *) xmalloc((size_t) (ii_MaxLength/6+32)*sizeof(uint32_t));
    memcpy(ptr, ii_e6Terms, (size_t) (ii_MaxLength/6+32)*sizeof(uint32_t));
-   
+
    return ptr;
 }
 
 uint32_t	*PrimesInXApp::Get9DigitTermsCopy(void)
 {
    uint32_t *ptr;
-   
+
    ptr = (uint32_t *) xmalloc((size_t) (ii_MaxLength/9+32)*sizeof(uint32_t));
    memcpy(ptr, ii_e9Terms, (size_t) (ii_MaxLength/9+32)*sizeof(uint32_t));
-   
+
    return ptr;
 }
 
@@ -411,20 +411,20 @@ void PrimesInXApp::WriteOutputTermsFile(uint64_t largestPrime)
 
    if (!termsFile)
       FatalError("Unable to open input file %s", is_OutputTermsFileName.c_str());
-      
+
    ip_FactorAppLock->Lock();
-   
+
    for (uint32_t l=ii_MinLength; l<=ii_MaxLength; l++)
    {
       if (iv_Terms[BIT(l)])
          maxLength = l;
    }
-   
+
    // Set the terminator so that we don't write unnecessary data
    is_FullTerm[maxLength] = 0;
 
    fprintf(termsFile, "DECIMAL %s // Sieved to %" PRIu64"\n", is_FullTerm.c_str(), largestPrime);
-      
+
    for (uint32_t l=ii_MinLength; l<=ii_MaxLength; l++)
    {
       if (iv_Terms[BIT(l)])
@@ -438,12 +438,12 @@ void PrimesInXApp::WriteOutputTermsFile(uint64_t largestPrime)
 
    if (termsCounted != il_TermCount)
       FatalError("Something is wrong.  Counted terms (%" PRIu64") != expected terms (%" PRIu64")", termsCounted, il_TermCount);
-      
+
    ip_FactorAppLock->Release();
 }
 
 void PrimesInXApp::GetExtraTextForSieveStartedMessage(char *extraText)
-{                 
+{
    if (is_SearchString.length() > 0)
       sprintf(extraText, "%d <= length <= %d, terms starting with %s", ii_MinLength, ii_MaxLength, is_SearchString.c_str());
    else
@@ -453,14 +453,14 @@ void PrimesInXApp::GetExtraTextForSieveStartedMessage(char *extraText)
 bool PrimesInXApp::ReportFactor(uint64_t theFactor, uint32_t n)
 {
    bool newFactor = false;
-   
+
    if (n < ii_MinLength || n > ii_MaxLength)
       return false;
-   
+
    VerifyFactor(theFactor, n);
-   
+
    ip_FactorAppLock->Lock();
-      
+
    uint64_t bit = BIT(n);
 
    if (iv_Terms[bit])
@@ -469,12 +469,12 @@ bool PrimesInXApp::ReportFactor(uint64_t theFactor, uint32_t n)
       iv_Terms[bit] = false;
       il_FactorCount++;
       il_TermCount--;
-      
+
       LogFactor(theFactor, "pix(%u)", n);
    }
-   
+
    ip_FactorAppLock->Release();
-   
+
    return newFactor;
 }
 
@@ -482,11 +482,11 @@ void PrimesInXApp::ReportPrime(uint64_t thePrime, uint32_t n)
 {
    if (n < ii_MinLength || n > ii_MaxLength)
       return;
-   
+
    VerifyFactor(thePrime, n);
-   
+
    ip_FactorAppLock->Lock();
-      
+
    uint64_t bit = BIT(n);
 
    if (iv_Terms[bit])
@@ -494,14 +494,14 @@ void PrimesInXApp::ReportPrime(uint64_t thePrime, uint32_t n)
       iv_Terms[bit] = false;
       il_FactorCount++;
       il_TermCount--;
- 
+
       LogFactor(thePrime, "pix(%u)", n);
-         
+
       WriteToConsole(COT_OTHER, "pix(%u) is prime! (%" PRIu64")", n, thePrime);
 
       WriteToLog("pix(%u) is prime! (%" PRIu64")", n, thePrime);
    }
-   
+
    ip_FactorAppLock->Release();
 }
 
@@ -513,7 +513,7 @@ void  PrimesInXApp::VerifyFactor(uint64_t theFactor, uint32_t termLength)
    MpArith  mp(theFactor);
    MpRes    mpDigits[10];
    MpRes    mpRem = mp.zero();
-   
+
    mpDigits[0] = mp.zero();
    mpDigits[1] = mp.one();
    mpDigits[2] = mp.add(mpDigits[1], mpDigits[1]);
@@ -524,15 +524,15 @@ void  PrimesInXApp::VerifyFactor(uint64_t theFactor, uint32_t termLength)
    mpDigits[7] = mp.add(mpDigits[6], mpDigits[1]);
    mpDigits[8] = mp.add(mpDigits[7], mpDigits[1]);
    mpDigits[9] = mp.add(mpDigits[8], mpDigits[1]);
-   
+
    MpRes mpTen = mp.add(mpDigits[9], mpDigits[1]);
-      
+
    for (uint32_t i=0; i<termLength; i++)
    {
       mpRem = mp.mul(mpRem, mpTen);
       mpRem = mp.add(mpRem, mpDigits[ii_e1Terms[i]]);
    }
-      
+
    if (mp.resToN(mpRem) != 0)
       FatalError("%" PRIu64" does not divide pix(%u)", theFactor, termLength);
 }

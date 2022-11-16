@@ -27,7 +27,7 @@ public:
    void              ValidateOptions(void);
    bool              ApplyFactor(uint64_t theFactor, const char *term);
    void              GetExtraTextForSieveStartedMessage(char *extraText);
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    uint32_t          GetMaxGpuSteps(void) { return ii_MaxGpuSteps; };
    uint32_t          GetMaxGpuFactors(void) { return ii_MaxGpuFactors; };
@@ -41,29 +41,29 @@ public:
    uint32_t         *Get3DigitTermsCopy(void);
    uint32_t         *Get6DigitTermsCopy(void);
    uint32_t         *Get9DigitTermsCopy(void);
-   
+
    bool              ReportFactor(uint64_t theFactor, uint32_t n);
    void              ReportPrime(uint64_t thePrime, uint32_t n);
 
 protected:
    void              PreSieveHook(void) {};
    bool              PostSieveHook(void) { return true; };
-   
+
    void              NotifyAppToRebuild(uint64_t largestPrimeTested) {};
-   
+
    void              ProcessInputTermsFile(bool haveBitMap);
    bool              IsWritingOutputTermsFile(void){ return true; };
    void              WriteOutputTermsFile(uint64_t largestPrime);
-   
+
    Worker           *CreateWorker(uint32_t id, bool gpuWorker, uint64_t largestPrimeTested);
 
 private:
    void              ProcessInputStringFile(void);
    void              BuildTerms(char *inputTerm);
    void              VerifyFactor(uint64_t theFactor, uint32_t termLength);
-   
+
    std::vector<bool> iv_Terms;
-   
+
    std::string       is_SearchString;
    std::string       is_FullTerm;
    std::string       is_StringFileName;
@@ -76,10 +76,10 @@ private:
    uint32_t          ii_MinLength;
    uint32_t          ii_MinLengthRemaining;
    uint32_t          ii_MaxLength;
-   
+
    uint32_t         *ii_e1Terms;                        // The string as an array of terms < 10
    uint32_t         *ii_e3Terms;                        // The string as an array of terms < 1000
-   uint32_t         *ii_e6Terms;                        // The string as an array of terms < 1000000 
+   uint32_t         *ii_e6Terms;                        // The string as an array of terms < 1000000
    uint32_t         *ii_e9Terms;                        // The string as an array of trems < 1000000000
    uint32_t          ii_e1TermCount;
    uint32_t          ii_e3TermCount;

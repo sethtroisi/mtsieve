@@ -110,12 +110,12 @@ uint32_t    CisOneSequenceHelper::FindBestQ(uint32_t &expectedSubsequences)
    W.resize(nDivisors);
 
    R.resize(ii_LimitBase);
-      
+
    seqPtr = ip_FirstSequence;
    do
    {
       std::fill(R.begin(), R.end(), false);
-      
+
       bit = NBIT(ii_MinN);
 
       for (n=ii_MinN; n<=ii_MaxN; n++)
@@ -135,7 +135,7 @@ uint32_t    CisOneSequenceHelper::FindBestQ(uint32_t &expectedSubsequences)
 
       seqPtr = (seq_t *) seqPtr->next;
    } while (seqPtr != NULL);
-   
+
    for (i=0, j=0; j<nDivisors; j++)
       if (nDivisors % (j+1) == 0)
       {
@@ -193,7 +193,7 @@ void  CisOneSequenceHelper::LastChanceLogicBeforeSieving(void)
    }
 
    BuildLegendreTables();
-   
+
    BuildCongruenceTables();
 }
 
@@ -214,7 +214,7 @@ void   CisOneSequenceHelper::BuildLegendreTables()
    legendre_t  *legendrePtr;
 
    SierpinskiRieselApp *srApp = (SierpinskiRieselApp *) ip_App;
-   
+
    legendreTableBytes = srApp->GetLegendreTableBytes();
 
    ip_Legendre = (legendre_t *) xmalloc(ii_SequenceCount * sizeof(legendre_t));
@@ -260,9 +260,9 @@ void   CisOneSequenceHelper::BuildLegendreTables()
       ii_LegendreBytes = legendreTableBytes;
    else
       ii_LegendreBytes = bytesNeeded + 1;    // We are not using offset 0
-   
+
    ip_LegendreTable = (uint8_t *) xmalloc(ii_LegendreBytes * sizeof(uint8_t));
-   
+
    if (ip_LegendreTable == NULL)
    {
       ip_App->WriteToConsole(COT_OTHER, "Approximately %.0f %s needed for Legendre tables", bytes, bytesPrecision);
@@ -297,10 +297,10 @@ void   CisOneSequenceHelper::BuildLegendreTables()
       bytesUsed += legendrePtr->bytesNeeded;
       legendrePtr->haveMap = true;
    }
-   
+
    // Restore the list to the original sequence
    qsort(ip_Legendre, ii_SequenceCount, sizeof(legendre_t), sortByMapSeqIdx);
-      
+
    startTime = time(NULL);
 
    for (uint32_t legIdx=0; legIdx<ii_SequenceCount; legIdx++)
@@ -310,15 +310,15 @@ void   CisOneSequenceHelper::BuildLegendreTables()
       // If we don't have memory for a Legendre table for this sequence, then there is nothing to do
       if (!legendrePtr->haveMap)
          continue;
-      
+
       LoadLegendreTablesFromFile(legendrePtr);
-      
+
       if (legendrePtr->loadedMapFromCache)
          seqsWithLegendreFromFile++;
       else
       {
          BuildLegendreTableForSequence(legendrePtr, srApp->GetSquareFreeBase(), stepsToDo, stepsDone, startTime);
-                  
+
          WriteLegendreTableToFile(legendrePtr);
       }
 
@@ -329,15 +329,15 @@ void   CisOneSequenceHelper::BuildLegendreTables()
 
    if (stopTime - startTime > 10)
       ip_App->WriteToConsole(COT_OTHER, "Took %u seconds to build Legendre tables", (uint32_t) (stopTime - startTime));
-   
+
    uint32_t seqLegendreIsPossible = ii_SequenceCount - seqNoLegendrePossible;
-      
+
    ip_App->WriteToConsole(COT_OTHER, "Legendre summary:  Approximately %.0f %s needed for Legendre tables", bytes, bytesPrecision);
    ip_App->WriteToConsole(COT_OTHER, "  %8u total sequences", ii_SequenceCount);
-   ip_App->WriteToConsole(COT_OTHER, "  %8u are eligible for Legendre tables", seqLegendreIsPossible);   
+   ip_App->WriteToConsole(COT_OTHER, "  %8u are eligible for Legendre tables", seqLegendreIsPossible);
    ip_App->WriteToConsole(COT_OTHER, "  %8u are not eligible for Legendre tables", seqNoLegendrePossible);
-   ip_App->WriteToConsole(COT_OTHER, "  %8u have Legendre tables in memory", seqsWithLegendreMemory);   
-   ip_App->WriteToConsole(COT_OTHER, "  %8u cannot have Legendre tables in memory", ii_SequenceCount - seqsWithLegendreMemory);   
+   ip_App->WriteToConsole(COT_OTHER, "  %8u have Legendre tables in memory", seqsWithLegendreMemory);
+   ip_App->WriteToConsole(COT_OTHER, "  %8u cannot have Legendre tables in memory", ii_SequenceCount - seqsWithLegendreMemory);
    ip_App->WriteToConsole(COT_OTHER, "  %8u have Legendre tables loaded from files", seqsWithLegendreFromFile);
    ip_App->WriteToConsole(COT_OTHER, "  %8u required building of the Legendre tables", seqsWithLegendreMemory - seqsWithLegendreFromFile);
 }
@@ -345,7 +345,7 @@ void   CisOneSequenceHelper::BuildLegendreTables()
 void   CisOneSequenceHelper::LoadLegendreTablesFromFile(legendre_t *legendrePtr)
 {
    SierpinskiRieselApp *srApp = (SierpinskiRieselApp *) ip_App;
-   
+
    string       directoryName = srApp->GetLegendreDirectoryName();
    char         fileName[500];
    v1_header_t  header;
@@ -358,19 +358,19 @@ void   CisOneSequenceHelper::LoadLegendreTablesFromFile(legendre_t *legendrePtr)
 #else
    sprintf(fileName, "%s/b%u_k%" PRIu64"_c%" PRId64".leg", directoryName.c_str(), ii_Base, legendrePtr->k, legendrePtr->c);
 #endif
-   
+
    FILE *fPtr = fopen(fileName, "rb");
-   
+
    if (fPtr == NULL)
       return;
-   
+
    if (fread(&header, sizeof(v1_header_t), 1, fPtr) < 1)
    {
       ip_App->WriteToConsole(COT_OTHER, "Could not read header from Legendre file %s", fileName);
       fclose(fPtr);
       return;
    }
-   
+
    if (!ValidateLegendreFile(&header, legendrePtr))
    {
       fclose(fPtr);
@@ -384,7 +384,7 @@ void   CisOneSequenceHelper::LoadLegendreTablesFromFile(legendre_t *legendrePtr)
       fclose(fPtr);
       return;
    }
-   
+
    legendrePtr->loadedMapFromCache = true;
 
    fclose(fPtr);
@@ -397,7 +397,7 @@ bool   CisOneSequenceHelper::ValidateLegendreFile(v1_header_t *headerPtr, legend
       ip_App->WriteToConsole(COT_OTHER, "base in Legendre file is not the expected base (%u != %u)", headerPtr->base, ii_Base);
       return false;
    }
-   
+
    if (headerPtr->fileVersion != 1)
    {
       ip_App->WriteToConsole(COT_OTHER, "version %u in Legendre file is not supported", 1);
@@ -406,22 +406,22 @@ bool   CisOneSequenceHelper::ValidateLegendreFile(v1_header_t *headerPtr, legend
 
    if (headerPtr->structSize != sizeof(v1_header_t))
    {
-      ip_App->WriteToConsole(COT_OTHER, "header size in Legendre file is not the expected header size (%u != %u)", headerPtr->structSize, (uint32_t) sizeof(v1_header_t));   
+      ip_App->WriteToConsole(COT_OTHER, "header size in Legendre file is not the expected header size (%u != %u)", headerPtr->structSize, (uint32_t) sizeof(v1_header_t));
       return false;
    }
-   
+
    if (headerPtr->k != legendrePtr->k)
    {
-      ip_App->WriteToConsole(COT_OTHER, "k in Legendre file is not the expected k (%" PRIu64" != %" PRIu64")", headerPtr->k, legendrePtr->k);  
+      ip_App->WriteToConsole(COT_OTHER, "k in Legendre file is not the expected k (%" PRIu64" != %" PRIu64")", headerPtr->k, legendrePtr->k);
       return false;
    }
-   
+
    if (headerPtr->c != legendrePtr->c)
    {
-      ip_App->WriteToConsole(COT_OTHER, "c in Legendre file is not the expected c (%" PRId64" != %" PRId64")", headerPtr->c, legendrePtr->c);  
+      ip_App->WriteToConsole(COT_OTHER, "c in Legendre file is not the expected c (%" PRId64" != %" PRId64")", headerPtr->c, legendrePtr->c);
       return false;
    }
-   
+
    if (headerPtr->mapSize != legendrePtr->mapSize)
    {
       ip_App->WriteToConsole(COT_OTHER, "mapSize for k=%" PRIu64" c=%" PRId64" is not the expected mapSize (%u != %u)",
@@ -436,7 +436,7 @@ bool   CisOneSequenceHelper::ValidateLegendreFile(v1_header_t *headerPtr, legend
       ip_App->WriteToConsole(COT_OTHER, "no maps are in the file for k=%" PRIu64" c=%" PRId64"", legendrePtr->k, legendrePtr->c);
       return false;
    }
-   
+
    if ((headerPtr->oneParityMapIndex    == 0 && legendrePtr->oneParityMapIndex    != 0) ||
        (headerPtr->oneParityMapIndex    != 0 && legendrePtr->oneParityMapIndex    == 0) ||
        (headerPtr->dualParityMapM1Index == 0 && legendrePtr->dualParityMapM1Index != 0) ||
@@ -456,26 +456,26 @@ bool   CisOneSequenceHelper::ReadLegendreTableFromFile(FILE *fPtr, uint8_t *map,
    // No map to read so assume success
    if (map == NULL)
       return true;
-      
+
    if (fseek(fPtr, offset, SEEK_SET) != 0)
    {
       ip_App->WriteToConsole(COT_OTHER, "fseek to offset %" PRIu64" failed", offset);
       return false;
    }
-   
+
    if (fread(map, sizeof(uint8_t), mapSize, fPtr) < mapSize)
    {
       ip_App->WriteToConsole(COT_OTHER, "could not read map from file");
       return false;
    }
-   
+
    return true;
 }
 
 void   CisOneSequenceHelper::WriteLegendreTableToFile(legendre_t *legendrePtr)
 {
    SierpinskiRieselApp *srApp = (SierpinskiRieselApp *) ip_App;
-   
+
    string       directoryName = srApp->GetLegendreDirectoryName();
    char         fileName[500];
    uint32_t     offset;
@@ -489,14 +489,14 @@ void   CisOneSequenceHelper::WriteLegendreTableToFile(legendre_t *legendrePtr)
 #else
    sprintf(fileName, "%s/b%u_k%" PRIu64"_c%" PRId64".leg", directoryName.c_str(), ii_Base, legendrePtr->k, legendrePtr->c);
 #endif
-      
+
    FILE *fPtr = fopen(fileName, "wb");
-   
+
    if (fPtr == NULL)
       FatalError("Could not open Legendre file %s", fileName);
-   
+
    offset = sizeof(v1_header_t);
-   
+
    header.fileVersion = 1;
    header.structSize = sizeof(v1_header_t);
    header.base = ii_Base;
@@ -506,28 +506,28 @@ void   CisOneSequenceHelper::WriteLegendreTableToFile(legendre_t *legendrePtr)
    header.oneParityMapIndex = 0;
    header.dualParityMapM1Index = 0;
    header.dualParityMapP1Index = 0;
-   
+
    if (legendrePtr->oneParityMap != NULL)
    {
       header.oneParityMapIndex = offset;
       offset += legendrePtr->mapSize;
    }
-   
+
    if (legendrePtr->dualParityMapM1 != NULL)
    {
       header.dualParityMapM1Index = offset;
       offset += legendrePtr->mapSize;
    }
-   
+
    if (legendrePtr->dualParityMapP1 != NULL)
    {
       header.dualParityMapP1Index = offset;
       offset += legendrePtr->mapSize;
    }
-         
+
    if (fwrite(&header, sizeof(v1_header_t), 1, fPtr) < 1)
       FatalError("could not write header to file");
-   
+
    if (legendrePtr->oneParityMap != NULL)
    {
       if (fwrite(legendrePtr->oneParityMap, sizeof(uint8_t), legendrePtr->mapSize, fPtr) < legendrePtr->mapSize)
@@ -539,7 +539,7 @@ void   CisOneSequenceHelper::WriteLegendreTableToFile(legendre_t *legendrePtr)
       if (fwrite(legendrePtr->dualParityMapM1, sizeof(uint8_t), legendrePtr->mapSize, fPtr) < legendrePtr->mapSize)
          FatalError("could not write map to file");
    }
-   
+
    if (legendrePtr->dualParityMapP1 != NULL)
    {
       if (fwrite(legendrePtr->dualParityMapP1, sizeof(uint8_t), legendrePtr->mapSize, fPtr) < legendrePtr->mapSize)

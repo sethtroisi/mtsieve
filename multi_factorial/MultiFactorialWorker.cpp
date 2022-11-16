@@ -16,7 +16,7 @@ extern "C" int multifactorial(uint32_t start, uint32_t mf, uint32_t minmax, uint
 MultiFactorialWorker::MultiFactorialWorker(uint32_t myId, App *theApp) : Worker(myId, theApp)
 {
    ip_MultiFactorialApp = (MultiFactorialApp *) theApp;
-   
+
    ii_MinN = ip_MultiFactorialApp->GetMinN();
    ii_MaxN = ip_MultiFactorialApp->GetMaxN();
    ii_MultiFactorial = ip_MultiFactorialApp->GetMultiFactorial();
@@ -40,7 +40,7 @@ void  MultiFactorialWorker::TestFactorial(void)
 {
    uint64_t  ps[4], maxPrime = ip_App->GetMaxPrime();
    uint32_t  n;
-   
+
    // if i <= n_pair then (i - 1) * i < p. Compute n! = (2 * 3) * (4 * 5) * ... * ((n - 1) * n)
    uint32_t  n_pair = std::max(2u, std::min(ii_MinN, uint32_t(sqrt(double(il_PrimeList[0])))) & ~1u);
 
@@ -50,7 +50,7 @@ void  MultiFactorialWorker::TestFactorial(void)
       ps[1] = il_PrimeList[pIdx+1];
       ps[2] = il_PrimeList[pIdx+2];
       ps[3] = il_PrimeList[pIdx+3];
-      
+
       MpArithVec mp(ps);
 
       const MpResVec pOne = mp.one();
@@ -92,15 +92,15 @@ void  MultiFactorialWorker::TestFactorial(void)
             {
                if (rf[k] == pOne[k])
                   ip_MultiFactorialApp->ReportFactor(ps[k], n, -1);
-                  
-               if (rf[k] == mOne[k]) 
+
+               if (rf[k] == mOne[k])
                   ip_MultiFactorialApp->ReportFactor(ps[k], n, +1);
             }
          }
       }
-      
+
       SetLargestPrimeTested(ps[3], 4);
-      
+
       if (ps[3] >= maxPrime)
          break;
    }
@@ -111,9 +111,9 @@ void  MultiFactorialWorker::TestMultiFactorial(void)
    uint64_t  ps[4], maxPrime = ip_App->GetMaxPrime();
    uint32_t  maxNFirstLoop = ii_MinN - ii_MultiFactorial;
    uint32_t  n, startN;
-   
+
    uint32_t  pIdx = 0;
-   
+
    while (pIdx < ii_PrimesInList)
    {
       ps[0] = il_PrimeList[pIdx+0];
@@ -138,18 +138,18 @@ void  MultiFactorialWorker::TestMultiFactorial(void)
 
          MpResVec ri = mp.nToRes(startN);
          MpResVec rf = ri;
-         
+
          // At this time we have:
          //    ri = residual of startN (mod p)
          //    rf = residual of startN!mf (mod p)
-         
+
          n = startN + ii_MultiFactorial;
          for (; n<maxNFirstLoop; n+=ii_MultiFactorial)
          {
             ri = mp.add(ri, resMf);
             rf = mp.mul(rf, ri);
          }
-         
+
          // At this time we have:
          //    ri = residual of mn (mod p)
          //    rf = residual of mn!mf (mod p)
@@ -165,16 +165,16 @@ void  MultiFactorialWorker::TestMultiFactorial(void)
                {
                   if (rf[k] == pOne[k])
                      ip_MultiFactorialApp->ReportFactor(ps[k], n, -1);
-                     
-                  if (rf[k] == mOne[k]) 
+
+                  if (rf[k] == mOne[k])
                      ip_MultiFactorialApp->ReportFactor(ps[k], n, +1);
                }
             }
          }
       }
-            
+
       SetLargestPrimeTested(ps[3], 4);
-      
+
       if (ps[3] >= maxPrime)
          break;
    }

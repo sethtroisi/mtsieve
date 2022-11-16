@@ -57,7 +57,7 @@ public:
    ~OpenCLDevice(void);
 
    void          *CreateKernel(const char *kernelName, const char *kernelSource, const char *preKernelSources[]);
-   
+
    // List all platforms and devices available.  Note that just because a platform/device is
    // listed, it does not mean that it can be used by the framework
    void           ListAllOpenCLDevices(void);
@@ -71,7 +71,7 @@ public:
    cl_device_id   GetDeviceId(void) { return ip_Platforms[ii_WhichPlatform].devices[ii_WhichDevice].deviceId; };
    cl_device_id  *GetDeviceIdPtr(void) { return &ip_Platforms[ii_WhichPlatform].devices[ii_WhichDevice].deviceId; };
    cl_uint        GetMaxComputeUnits(void) { return ip_Platforms[ii_WhichPlatform].devices[ii_WhichDevice].maxComputeUnits; };
-   
+
    bool           IsPrintDetails(void) { return ib_PrintDetails; };
 
 private:
@@ -83,7 +83,7 @@ private:
    bool           ib_HavePlatform;
    bool           ib_HaveOpenCLDevice;
    bool           ib_PrintDetails;
-   
+
    int32_t        ii_TotalDeviceCount;
    cl_uint        ii_PlatformCount;
    cl_uint        ii_WhichPlatform;

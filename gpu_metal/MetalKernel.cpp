@@ -91,13 +91,13 @@ void  *MetalKernel::AddArgument(const char *name, uint32_t size, uint32_t count,
       cpuMemory = xmalloc(size * count + 1);
 
    ip_GpuDevice->IncrementGpuBytes(size * count);
-   
+
    ip_Buffer[ii_BufferCount] = ip_MetalDevice->newBuffer(count * size, MTL::ResourceStorageModeShared);
 
    ii_BufferCount++;
 
    void *buffer = ip_Buffer[ii_BufferCount - 1]->contents();
-   
+
    if (cpuMemory != NULL)
       memcpy(buffer, cpuMemory, count * size);
 
@@ -109,7 +109,7 @@ void MetalKernel::Execute(uint32_t workSize)
    uint64_t startTime;
 
    startTime = Clock::GetCurrentMicrosecond();
-   
+
    ip_ComputeEncoder->setComputePipelineState(ip_ComputePipelineState);
 
    for (uint32_t idx=0; idx<=ii_BufferCount; idx++)
@@ -128,7 +128,7 @@ void MetalKernel::Execute(uint32_t workSize)
    ip_ComputeEncoder->endEncoding();
 
    ip_CommandBuffer->commit();
-   ip_CommandBuffer->waitUntilCompleted(); 
-   
+   ip_CommandBuffer->waitUntilCompleted();
+
    ip_GpuDevice->AddGpuMicroseconds(Clock::GetCurrentMicrosecond() - startTime);
 }

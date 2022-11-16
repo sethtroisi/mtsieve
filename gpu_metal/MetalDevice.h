@@ -31,7 +31,7 @@ public:
 
    void          *GetMetalDevice(void) { return ip_MetalDevice; };
 
-private: 
+private:
    void          *ip_Pool;
    void          *ip_MetalDevice;
 };

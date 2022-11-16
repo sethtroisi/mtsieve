@@ -22,26 +22,26 @@ public:
    AbstractWorker(uint32_t myId, App *theApp, AbstractSequenceHelper *appHelper);
 
    ~AbstractWorker(void) {};
-   
+
    virtual void         Prepare(uint64_t largestPrimeTested, uint32_t bestQ) = 0;
-   
-protected:   
+
+protected:
    SierpinskiRieselApp *ip_SierpinskiRieselApp;
    AbstractSequenceHelper   *ip_AppHelper;
-   
+
    uint32_t             ii_Base;
    uint32_t             ii_MinN;
    uint32_t             ii_MaxN;
-   
+
    // The sequences and subsequences are read only in the worker classes
    seq_t               *ip_FirstSequence;
    subseq_t            *ip_Subsequences;
-   
+
    uint32_t             ii_SequenceCount;
    uint32_t             ii_SubsequenceCount;
 
    uint32_t             ii_BestQ;
-   
+
    // 1/a (mod p)  if a > 0, 0 othewise. Assumes a < p and gcd(a,p)=1.
    // Thanks to the folks at mersenneforum.org.
    // See http://www.mersenneforum.org/showthread.php?p=58252.
@@ -56,7 +56,7 @@ protected:
       {
          sprintf(aStr, "%" PRIu64"", a);
          sprintf(pStr, "%" PRIu64"", p);
-         
+
          FatalError("invmod called with invalid parameters (%s > %s)", aStr, pStr);
       }
 
@@ -110,7 +110,7 @@ protected:
 
       if (ps1 == 0)
          FatalError("invmod failed with ps1 = 0");
-      
+
       if (ps1 == 0)
          FatalError("invmod failed with ps1 >= p");
 
@@ -121,17 +121,17 @@ protected:
    inline uint64_t  lmod64(int64_t a, uint64_t p)
    {
       uint64_t ua;
-      
+
       if (a >= 0)
       {
          ua = (uint64_t) a;
-         
+
          return (ua < p) ? ua : ua%p;
       }
       else
       {
          ua = (uint64_t) -a;
-         
+
          return (ua < p) ? p-ua : p-(ua%p);
       }
    }
@@ -141,20 +141,20 @@ protected:
    {
       return (a < p) ? a : a%p;
    }
-   
+
    inline uint64_t  getNegCK(seq_t *seq, uint64_t p)
    {
       uint64_t negCK;
-      
+
        /* neg_ck <-- -k/c (mod p) == -ck (mod p) */
       if (p < seq->k)
          negCK = seq->k % p;
-      else 
+      else
          negCK = seq->k;
-     
+
       if (ip_FirstSequence->c > 0)
          negCK = p - negCK;
-      
+
       return negCK;
    }
 private:

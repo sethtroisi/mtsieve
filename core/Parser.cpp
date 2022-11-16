@@ -86,7 +86,7 @@ parse_t  Parser::Parse(const char *str, int64_t lo, int64_t hi, int64_t &value)
 
    if (negative)
       signed_result64 *= -1;
-   
+
    if (signed_result64 > hi)
       return P_OUT_OF_RANGE;
 
@@ -192,10 +192,10 @@ parse_t  Parser::Parse(const char *str, double lo, double hi, double &value)
 
    if (sscanf(str, "%lf", &num) != 1)
       return P_FAILURE;
-   
+
    if (num < lo || num > hi)
       return P_OUT_OF_RANGE;
-   
+
    value = num;
    return P_SUCCESS;
 }

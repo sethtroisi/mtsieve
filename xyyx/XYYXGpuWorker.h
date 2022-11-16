@@ -23,17 +23,17 @@ public:
 
    void              TestMegaPrimeChunk(void);
    void              TestMiniPrimeChunk(uint64_t *miniPrimeChunk);
-   
+
    void              CleanUp(void);
 
-protected:   
+protected:
    uint32_t         *ii_Terms;
    uint64_t          il_NextTermsBuild;
-   
+
    uint32_t          ii_Groups;
    uint32_t          ii_GroupSize;
    uint32_t          ii_MaxGpuFactors;
-   
+
    uint32_t         *ii_KernelTerms;
    uint32_t         *ii_FactorCount;
    uint64_t         *il_FactorList;

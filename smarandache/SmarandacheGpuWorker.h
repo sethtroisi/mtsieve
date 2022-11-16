@@ -27,16 +27,16 @@ public:
 
 protected:
    void              BuildTerms(terms_t *terms);
-   
+
    SmarandacheApp   *ip_SmarandacheApp;
 
    bool              ib_NeedToRebuildTerms;
    uint32_t          ii_KernelCount;
    uint32_t        **ii_AllTerms;
-   
+
    uint32_t          ii_MaxGpuFactors;
    uint32_t          ii_MaxGpuSteps;
-   
+
    uint32_t         *ii_KernelTerms;
    uint32_t         *ii_FactorCount;
    uint64_t         *il_FactorList;

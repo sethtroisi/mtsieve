@@ -35,7 +35,7 @@ private:
    void              VerifyFactor(uint64_t k, uint32_t n, uint64_t prime);
 
    GFNDivisorApp    *ip_GFNDivisorApp;
-   
+
    uint64_t          il_KCount;
    uint32_t          ii_NCount;
    uint64_t          il_MinK;

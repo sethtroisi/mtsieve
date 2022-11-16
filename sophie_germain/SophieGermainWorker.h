@@ -32,7 +32,7 @@ private:
    void              TestMegaPrimeChunkLarge(void);
    void              RemoveTermsSmallPrime(uint64_t prime, bool firstOfPair, uint64_t k);
    void              RemoveTermsLargePrime(uint64_t prime, bool firstOfPair, uint64_t k);
-   
+
    SophieGermainApp *ip_SophieGermainApp;
 
    uint64_t          il_MinK;

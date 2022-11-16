@@ -40,12 +40,12 @@ SmarandacheApp::SmarandacheApp() : FactorApp()
    ii_MinN = 0;
    ii_MaxN = 0;
    ii_CpuWorkSize = 10000;
-   
+
    // We'll remove all even terms manually
    SetAppMinPrime(99*99);
 
    SetAppMaxPrime(PMAX_MAX_52BIT);
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    ii_MaxGpuSteps = 1000000;
    ii_MaxGpuFactors = GetGpuWorkGroups() * 10;
@@ -76,7 +76,7 @@ void  SmarandacheApp::AddCommandLineOptions(std::string &shortOpts, struct optio
 
 #if defined(USE_OPENCL) || defined(USE_METAL)
    shortOpts += "S:M:";
-   
+
    AppendLongOpt(longOpts, "maxsteps",       required_argument, 0, 'S');
    AppendLongOpt(longOpts, "maxfactors",     required_argument, 0, 'M');
 #endif
@@ -94,7 +94,7 @@ parse_t SmarandacheApp::ParseOption(int opt, char *arg, const char *source)
       case 'n':
          status = Parser::Parse(arg, 100000, 9999999, ii_MinN);
          break;
-         
+
       case 'N':
          status = Parser::Parse(arg, 100000, 9999999, ii_MaxN);
          break;
@@ -103,7 +103,7 @@ parse_t SmarandacheApp::ParseOption(int opt, char *arg, const char *source)
       case 'S':
          status = Parser::Parse(arg, 1, 1000000000, ii_MaxGpuSteps);
          break;
-         
+
       case 'M':
          status = Parser::Parse(arg, 10, 1000000, ii_MaxGpuFactors);
          break;
@@ -118,19 +118,19 @@ void SmarandacheApp::ValidateOptions(void)
    if (is_OutputTermsFileName.length() == 0)
    {
       char fileName[50];
-      
+
       sprintf(fileName, "smarandache.pfgw");
-      
+
       is_OutputTermsFileName = fileName;
    }
-   
+
    if (is_InputTermsFileName.length() > 0)
    {
       ProcessInputTermsFile(false);
-   
+
       iv_Terms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_Terms.begin(), iv_Terms.end(), false);
-      
+
       il_TermCount = 0;
       ProcessInputTermsFile(true);
    }
@@ -141,7 +141,7 @@ void SmarandacheApp::ValidateOptions(void)
 
       iv_Terms.resize(ii_MaxN - ii_MinN + 1);
       std::fill(iv_Terms.begin(), iv_Terms.end(), true);
-      
+
       il_TermCount = (ii_MaxN - ii_MinN + 1);
    }
 
@@ -160,7 +160,7 @@ Worker *SmarandacheApp::CreateWorker(uint32_t id, bool gpuWorker, uint64_t large
    if (gpuWorker)
       return new SmarandacheGpuWorker(id, this);
 #endif
-   
+
    return new SmarandacheWorker(id, this);
 }
 
@@ -168,18 +168,18 @@ terms_t *SmarandacheApp::GetTerms(void)
 {
    terms_t *terms = (terms_t *) xmalloc(sizeof(terms_t));
    uint64_t idx = 0;
-   
+
    terms->termList = (uint32_t *) xmalloc(il_TermCount * sizeof(uint32_t));
-   
+
    for (uint32_t n=ii_MinN; n<=ii_MaxN; n++)
-   {      
+   {
       if (iv_Terms[BIT(n)])
       {
          terms->termList[idx] = n;
          idx++;
       }
    }
-   
+
    terms->termCount = idx;
    return terms;
 }
@@ -196,7 +196,7 @@ void SmarandacheApp::ProcessInputTermsFile(bool haveBitMap)
 
    if (fgets(buffer, sizeof(buffer), fPtr) == NULL)
       FatalError("No data in input file %s", is_InputTermsFileName.c_str());
-   
+
   if (memcmp(buffer, "ABC Sm($a)", 10))
       FatalError("Line 1 is malformed in input file %s", is_InputTermsFileName.c_str());
 
@@ -205,12 +205,12 @@ void SmarandacheApp::ProcessInputTermsFile(bool haveBitMap)
 
    if (!haveBitMap)
       ii_MinN = ii_MaxN = 0;
-   
+
    while (fgets(buffer, sizeof(buffer), fPtr) != NULL)
    {
       if (!StripCRLF(buffer))
          continue;
-   
+
       if (sscanf(buffer, "%u", &n) != 1)
          FatalError("Line %s is malformed", buffer);
 
@@ -219,10 +219,10 @@ void SmarandacheApp::ProcessInputTermsFile(bool haveBitMap)
 
       if (n<100000 || n>9999999)
          FatalError("Term %u must be between 100000 and 9999999", n);
-      
+
       if (ii_MaxN == 0)
          ii_MinN = ii_MaxN = n;
-            
+
       if (haveBitMap)
       {
          iv_Terms[BIT(n)] = true;
@@ -241,25 +241,25 @@ void SmarandacheApp::ProcessInputTermsFile(bool haveBitMap)
 bool SmarandacheApp::ApplyFactor(uint64_t thePrime, const char *term)
 {
    uint32_t n;
-   
+
    if (sscanf(term, "Sm(%u)", &n) != 1)
       FatalError("Could not parse term %s", term);
-   
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-     
+
    VerifyFactor(thePrime, n);
-   
+
    uint64_t bit = BIT(n);
-   
+
    // No locking is needed because the Workers aren't running yet
    if (iv_Terms[bit])
-   {	
+   {
       iv_Terms[bit] = false;
       il_TermCount--;
       return true;
    }
-      
+
    return false;
 }
 
@@ -272,7 +272,7 @@ void SmarandacheApp::WriteOutputTermsFile(uint64_t largestPrime)
       FatalError("Unable to open input file %s", is_OutputTermsFileName.c_str());
 
    ip_FactorAppLock->Lock();
-   
+
    fprintf(termsFile, "ABC Sm($a) // Sieved to %" PRIu64"\n", largestPrime);
 
    for (uint32_t n=ii_MinN; n<=ii_MaxN; n++)
@@ -285,7 +285,7 @@ void SmarandacheApp::WriteOutputTermsFile(uint64_t largestPrime)
    }
 
    fclose(termsFile);
-   
+
    if (termsCounted != il_TermCount)
       FatalError("Something is wrong.  Counted terms (%" PRIu64") != expected terms (%" PRIu64")", termsCounted, il_TermCount);
 
@@ -301,37 +301,37 @@ bool SmarandacheApp::ReportFactor(uint64_t theFactor, uint32_t n)
 {
    uint32_t bit;
    bool     newFactor = false;
-   
+
    if (n < ii_MinN || n > ii_MaxN)
       return false;
-      
+
    VerifyFactor(theFactor, n);
-   
+
    ip_FactorAppLock->Lock();
-   
+
    bit = BIT(n);
-   
+
    if (iv_Terms[bit])
    {
       newFactor = true;
       iv_Terms[bit] = false;
       il_TermCount--;
       il_FactorCount++;
-      
+
       LogFactor(theFactor, "Sm(%u)", n);
    }
-   
+
    ip_FactorAppLock->Release();
-   
+
    return newFactor;
 }
 
 void  SmarandacheApp::VerifyFactor(uint64_t theFactor, uint32_t n)
 {
    uint64_t rem = 1, i;
-   
+
    fpu_push_1divp(theFactor);
-   
+
    for (i=2; i<=n; i++)
    {
       if (i < 10)
@@ -340,7 +340,7 @@ void  SmarandacheApp::VerifyFactor(uint64_t theFactor, uint32_t n)
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
 
@@ -350,71 +350,71 @@ void  SmarandacheApp::VerifyFactor(uint64_t theFactor, uint32_t n)
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
-      
+
       if (i < 1000)
       {
          rem = fpu_mulmod(rem, 1000, theFactor);
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
-      
+
       if (i < 10000)
       {
          rem = fpu_mulmod(rem, 10000, theFactor);
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
-      
+
       if (i < 100000)
       {
          rem = fpu_mulmod(rem, 100000, theFactor);
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
-      
+
       if (i < 1000000)
       {
          rem = fpu_mulmod(rem, 1000000, theFactor);
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
-      
+
       if (i < 10000000)
       {
          rem = fpu_mulmod(rem, 10000000, theFactor);
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
-      
+
       if (i < 100000000)
       {
          rem = fpu_mulmod(rem, 100000000, theFactor);
          rem += i;
          while (rem >= theFactor)
             rem -= theFactor;
-         
+
          continue;
       }
    }
-   
+
    fpu_pop();
 
    if (rem == 0)

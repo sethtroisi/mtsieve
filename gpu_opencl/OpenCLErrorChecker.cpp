@@ -37,7 +37,7 @@ void OpenCLErrorChecker::ExitIfError(const char *functionName, cl_int status, co
    exit(-1);
 }
 
-const char *OpenCLErrorChecker::GetErrorText(cl_int err) 
+const char *OpenCLErrorChecker::GetErrorText(cl_int err)
 {
   switch (err)
   {

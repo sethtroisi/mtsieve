@@ -30,20 +30,20 @@ public:
 
 protected:
    void              BuildPrimeGapGroups(void);
-   
+
    PrimorialApp     *ip_PrimorialApp;
-   
+
    uint32_t          ii_MinPrimorial;
    uint32_t          ii_MaxPrimorial;
-      
+
    uint32_t          ii_IdxOfMinPrimorial;
    uint32_t          ii_GroupCount;
    uint16_t          ii_BiggestGap;
    uint16_t        **ip_GapGroups;
-   
+
    uint32_t          ii_MaxGpuSteps;
    uint32_t          ii_MaxGpuFactors;
-   
+
    uint64_t         *il_Residues;
    uint16_t         *ii_PrimeGaps;
    uint32_t         *ii_Parameters;

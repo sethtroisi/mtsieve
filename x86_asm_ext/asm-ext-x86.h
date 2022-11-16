@@ -6,7 +6,7 @@
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
+
    The 62-bit variant of the routines require p < 2^62.  To use the
    mulmod or powmod, you must call the mod_init to set the rounding
    mode and reset it with mod_fini when done.

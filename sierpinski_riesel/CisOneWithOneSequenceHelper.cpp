@@ -25,24 +25,24 @@ CisOneWithOneSequenceHelper::CisOneWithOneSequenceHelper(App *theApp, uint64_t l
    theApp->WriteToConsole(COT_OTHER, "Sieving with single sequence c=1 logic for p >= %" PRIu64"", largestPrimeTested);
 
    SierpinskiRieselApp *srApp = (SierpinskiRieselApp *) theApp;
-   
+
    if (srApp->GetBaseMultipleMulitplier() == 0)
       ii_BaseMultiple = 2 * DEFAULT_BM_MULTIPLIER_SINGLE;
    else
       ii_BaseMultiple = 2 * srApp->GetBaseMultipleMulitplier();
-      
+
    if (srApp->GetPowerResidueLcmMultiplier() == 0)
       ii_PowerResidueLcm = ii_BaseMultiple * DEFAULT_PRL_MULTIPLIER_SINGLE;
    else
       ii_PowerResidueLcm = ii_BaseMultiple * srApp->GetPowerResidueLcmMultiplier();
-   
+
    if (srApp->GetLimitBaseMultiplier() == 0)
       ii_LimitBase = ii_PowerResidueLcm * DEFAULT_LB_MULTIPLIER_SINGLE;
    else
       ii_LimitBase = ii_PowerResidueLcm * srApp->GetLimitBaseMultiplier();
 
    ip_App->WriteToConsole(COT_OTHER, "BASE_MULTIPLE = %u, POWER_RESIDUE_LCM = %u, LIMIT_BASE = %u", ii_BaseMultiple, ii_PowerResidueLcm, ii_LimitBase);
-   
+
    ip_Legendre = NULL;
    ip_LegendreTable = NULL;
 
@@ -56,14 +56,14 @@ Worker  *CisOneWithOneSequenceHelper::CreateWorker(uint32_t id, bool gpuWorker, 
 
    // Note that GenericWorker inherits from Worker.  This will not
    // only create the worker, but also start it.
-   
+
 #if defined(USE_OPENCL) || defined(USE_METAL)
    if (gpuWorker)
       theWorker = new CisOneWithOneSequenceGpuWorker(id, ip_App, this);
    else
 #endif
       theWorker = new CisOneWithOneSequenceWorker(id, ip_App, this);
-      
+
    theWorker->Prepare(largestPrimeTested, ii_BestQ);
 
    return theWorker;
@@ -91,16 +91,16 @@ double   CisOneWithOneSequenceHelper::RateQ(uint32_t Q, uint32_t s)
          // giantSteps are very expensive compared to other loops, so this might
          // always be the best choice even if it means more memory is needed
          //uint32_t r = 1 + ii_MaxN/Q - ii_MinN/Q;
-         
+
          //ChooseSteps(r, s, babySteps, giantSteps);
-         
+
          //W[i] = giantSteps;
       }
 
       if (gcd32(i+1, ii_PowerResidueLcm) == 1)
          work += W[gcd32(i, ii_PowerResidueLcm)];
    }
-   
+
    return work;
 }
 
@@ -113,7 +113,7 @@ double   CisOneWithOneSequenceHelper::RateQ(uint32_t Q, uint32_t s)
 #define GIANT_WORK   3.0    // 1 mulmod, 1 lookup
 #define EXP_WORK     0.3    // 1 mulmod
 #define SUBSEQ_WORK  1.4    // 1 mulmod, 1 lookup (giant step 0)
-                               
+
 // Q = q, s = number of subsequences.
 double   CisOneWithOneSequenceHelper::EstimateWork(uint32_t Q, uint32_t s)
 {
@@ -123,7 +123,7 @@ double   CisOneWithOneSequenceHelper::EstimateWork(uint32_t Q, uint32_t s)
    ChooseSteps(Q, s, babySteps, giantSteps);
 
    work = babySteps*BABY_WORK + s*(giantSteps-1)*GIANT_WORK + Q*EXP_WORK + s*SUBSEQ_WORK;
-   
+
    return work;
 }
 
@@ -131,7 +131,7 @@ void  CisOneWithOneSequenceHelper::BuildCongruenceTables(void)
 {
    uint64_t  bytesNeeded;
    seq_t    *seqPtr;
-      
+
    ii_Dim3 = ii_PowerResidueLcm;
    ii_Dim2 = ii_Dim3 * ii_UsedPowerResidueIndices;
    ii_Dim1 = ii_Dim2 * SP_COUNT;
@@ -146,26 +146,26 @@ void  CisOneWithOneSequenceHelper::BuildCongruenceTables(void)
    // for that parity, r, and h.  The relationship for the ladder is the same.
 
    // The first entry if ip_AllQs and ip_AllLadders is unused.  This guarantees that a value of
-   // 0 for the the qIndex or ladderIndex means that there are none. 
+   // 0 for the the qIndex or ladderIndex means that there are none.
    ii_UsedQEntries = 1;
    ii_UsedLadderEntries = 1;
    ii_MaxQEntries = ii_MaxLadderEntries = ii_Dim1;
-   
+
    // These will be resized as necessary
    ip_AllQs = (uint16_t *) xmalloc(ii_MaxQEntries * sizeof(uint16_t));
    ip_AllLadders = (uint16_t *) xmalloc(ii_MaxLadderEntries * sizeof(uint16_t));
-   
+
    seqPtr = ip_FirstSequence;
    while (seqPtr != NULL)
    {
       BuildCongruenceTablesForSequence(seqPtr);
-      
+
       seqPtr = (seq_t *) seqPtr->next;
    }
-   
+
    bytesNeeded = ii_Dim1 * sizeof(uint32_t) * 2;
    ip_App->WriteToConsole(COT_OTHER, "%" PRIu64" bytes used for congruent q and ladder indices", bytesNeeded);
-   
+
    bytesNeeded = (ii_MaxQEntries + ii_MaxLadderEntries) * sizeof(uint16_t);
    ip_App->WriteToConsole(COT_OTHER, "%" PRIu64" bytes used for congruent qs and ladders", bytesNeeded);
 }
@@ -177,15 +177,15 @@ void  CisOneWithOneSequenceHelper::BuildCongruenceTablesForSequence(seq_t *seqPt
    uint32_t   ssIdx, h, r, len[SP_COUNT];
    uint16_t  *tempQs[SP_COUNT];
    sp_t       parity = ip_FirstSequence->nParity;
-   
+
    for (h=0; h<SP_COUNT; h++)
       tempQs[h] = (uint16_t *) xmalloc(ii_PowerResidueLcm * sizeof(uint16_t));
-   
+
    for (r=1; r<=ii_PowerResidueLcm; r++)
    {
       if (ii_PowerResidueLcm % r != 0)
          continue;
-      
+
       for (h=0; h<r; h++)
       {
          len[0] = len[1] = len[2] = 0;
@@ -196,19 +196,19 @@ void  CisOneWithOneSequenceHelper::BuildCongruenceTablesForSequence(seq_t *seqPt
             if (HasCongruentTerms(ssIdx, r, h))
             {
                uint16_t q = ip_Subsequences[ssIdx].q;
-               
+
                // odd and even
                if (parity == SP_MIXED)
                {
                   tempQs[SP_MIXED][len[SP_MIXED]++] = q;
-                     
+
                   if (ip_Subsequences[ssIdx].q%2 == 1)
                      tempQs[SP_ODD][len[SP_ODD]++] = q;
 
                   if (ip_Subsequences[ssIdx].q%2 == 0)
                      tempQs[SP_EVEN][len[SP_EVEN]++] = q;
                }
-               
+
                if (parity == SP_ODD)
                   tempQs[SP_ODD][len[SP_ODD]++] = q;
 
@@ -222,7 +222,7 @@ void  CisOneWithOneSequenceHelper::BuildCongruenceTablesForSequence(seq_t *seqPt
          CopyQsAndMakeLadder(seqPtr, SP_MIXED, r, h, tempQs[SP_MIXED], len[SP_MIXED]);
       }
    }
-   
+
    for (h=0; h<SP_COUNT; h++)
       xfree(tempQs[h]);
 }
@@ -234,7 +234,7 @@ void  CisOneWithOneSequenceHelper::CopyQsAndMakeLadder(seq_t *seqPtr, sp_t parit
 
    uint16_t rIdx = ip_PowerResidueIndices[r];
    uint32_t cqIdx = CQ_INDEX(parity, rIdx, h);
-   
+
    ip_CongruentQIndices[cqIdx] = ii_UsedQEntries;
    ip_LadderIndices[cqIdx] = ii_UsedLadderEntries;
 
@@ -266,10 +266,10 @@ void  CisOneWithOneSequenceHelper::CopyQsAndMakeLadder(seq_t *seqPtr, sp_t parit
 
    ip_AllQs[ii_UsedQEntries] = qListLen;
    ii_UsedQEntries++;
-   
+
    memcpy(&ip_AllQs[ii_UsedQEntries], qList, qListLen * sizeof(uint16_t));
    ii_UsedQEntries += qListLen;
-      
+
    MakeLadder(qList, qListLen);
 }
 
@@ -278,13 +278,13 @@ void   CisOneWithOneSequenceHelper::MakeLadder(uint16_t *qList, uint32_t qListLe
 {
    uint32_t          i, j, k, a;
    vector<uint8_t>   tempQs;
-   
+
    assert(qListLen+1 < ii_BestQ);
-   
+
    tempQs.resize(ii_BestQ+1);
 
    tempQs[ii_BestQ] = 1;
-   
+
    for (i=0, a=1; i<qListLen; i++, a++)
       tempQs[qList[i]] = 1;
 
@@ -305,25 +305,25 @@ void   CisOneWithOneSequenceHelper::MakeLadder(uint16_t *qList, uint32_t qListLe
             if (tempQs[i] == 1)
                break;
       }
-      
+
       assert(i <= ii_BestQ);
 
       if (tempQs[i-j] == 2)
       {
          /* We can use an existing rung */
          tempQs[i] = 2;
-         a--; 
+         a--;
       }
       else
       {
          /* Need to create a new rung */
-         k = MIN(i-j,(i+1)/2); 
+         k = MIN(i-j,(i+1)/2);
          assert(tempQs[k]==0);
          tempQs[k] = 1;
          a++;
-         
+
          /* Need to re-check rungs above the new one */
-         for (k++; k<=j; k++) 
+         for (k++; k<=j; k++)
             if (tempQs[k] == 2)
             {
                tempQs[k] = 1;
@@ -339,7 +339,7 @@ void   CisOneWithOneSequenceHelper::MakeLadder(uint16_t *qList, uint32_t qListLe
 
    ip_AllLadders[ii_UsedLadderEntries] = a;
    ii_UsedLadderEntries++;
-   
+
    j = 2;
    for (i=3; i<=ii_BestQ; i++)
       if (tempQs[i] == 2)
@@ -357,28 +357,28 @@ void  CisOneWithOneSequenceHelper::ComputeLegendreMemoryToAllocate(legendre_t *l
    uint64_t    mod = legendrePtr->squareFreeK;
    uint32_t    mapSize = 0;
    bool        canCreateMap = true;
-         
+
    switch (legendrePtr->nParity)
    {
       // odd n, test for (-bck/p)==1
-      case SP_ODD: 
+      case SP_ODD:
          mod *= ssqfb;
          r *= ssqfb;
          // Fall through
 
       // even n, test for (-ck/p)==1
-      case SP_EVEN: 
+      case SP_EVEN:
          if ((r < 0 && (-r) % 4 != 3) || (r > 0 && r % 4 != 1))
             mod *= 2;
-         
+
          mapSize = L_BYTES(mod);
-         
+
          if (legendrePtr->squareFreeK > INT32_MAX/ssqfb)
             canCreateMap = false;
-         
+
          if ((2*mod+1) >= INT32_MAX)
             canCreateMap = false;
-         
+
          if (canCreateMap)
          {
             legendrePtr->mapSize = mapSize;
@@ -389,18 +389,18 @@ void  CisOneWithOneSequenceHelper::ComputeLegendreMemoryToAllocate(legendre_t *l
       // odd and even n, test for (-ck/p)==1 and (-bck/p)==1
       default:
          mod = mod*2*ssqfb;
-      
+
          mapSize = L_BYTES(mod);
-         
+
          if (legendrePtr->squareFreeK > INT32_MAX/ssqfb)
             canCreateMap = false;
-         
+
          if ((2*mod+1) >= INT32_MAX)
             canCreateMap = false;
-         
+
          if (abs(r) >= INT32_MAX)
             canCreateMap = false;
-         
+
          if (canCreateMap)
          {
             legendrePtr->mapSize = mapSize;
@@ -415,11 +415,11 @@ void  CisOneWithOneSequenceHelper::ComputeLegendreMemoryToAllocate(legendre_t *l
 }
 
 void     CisOneWithOneSequenceHelper::AssignMemoryToLegendreTable(legendre_t *legendrePtr, uint64_t bytesUsed)
-{   
+{
    switch (legendrePtr->nParity)
    {
       // odd n, test for (-bck/p)==1
-      case SP_ODD: 
+      case SP_ODD:
       case SP_EVEN:
          legendrePtr->oneParityMapIndex = bytesUsed;
          legendrePtr->oneParityMap = &ip_LegendreTable[bytesUsed];
@@ -443,12 +443,12 @@ void     CisOneWithOneSequenceHelper::AssignMemoryToLegendreTable(legendre_t *le
 // of seq_map[0] is set if and only if
 // (-ck/p)=1 for sequences with all n even,
 // (-bck/p)=1 for sequences with all n odd.
-// 
+//
 // For sequences with mixed parity terms (parity=0):
 // Set seq_mod, seq_map[0] and seq_map[1] for sequence k*b^n+c so that
 // bit (p/2)%mod of seq_map[0] is set if and only if (-ck/p)=1,
 // bit (p/2)%mod of seq_map[1] is set if and only if (-bck/p)=1.
-// 
+//
 // In the worst case each table for k*b^n+c could be 4*b*k bits long.
 void  CisOneWithOneSequenceHelper::BuildLegendreTableForSequence(legendre_t *legendrePtr, uint64_t ssqfb, uint64_t stepsToDo, uint64_t stepsDone, time_t startTime)
 {
@@ -459,11 +459,11 @@ void  CisOneWithOneSequenceHelper::BuildLegendreTableForSequence(legendre_t *leg
    struct tm   *finish_tm;
    char     finishTimeBuffer[32];
    time_t   finishTime;
-   
+
    switch (legendrePtr->nParity)
    {
       // odd n, test for (-bck/p)==1
-      case SP_ODD: 
+      case SP_ODD:
       case SP_EVEN:
          for (i=0; i<steps; i++)
          {
@@ -474,15 +474,15 @@ void  CisOneWithOneSequenceHelper::BuildLegendreTableForSequence(legendre_t *leg
             {
                percentDone = ((double) stepsDone)/stepsToDo;
                finishTime = (time_t) (startTime + (time(NULL)-startTime)/percentDone);
-               
+
                finish_tm = localtime(&finishTime);
                if (!finish_tm || !strftime(finishTimeBuffer, sizeof(finishTimeBuffer), REPORT_STRFTIME_FORMAT, finish_tm))
                   finishTimeBuffer[0] = '\0';
-      
+
                ip_App->WriteToConsole(COT_SIEVE, "Building Legendre tables: %.1f%% done %s (currently at k=%" PRIu64")", 100.0*percentDone, finishTimeBuffer, legendrePtr->k);
             }
          }
-   
+
          break;
 
       // odd and even n, test for (-ck/p)==1 and (-bck/p)==1
@@ -491,23 +491,23 @@ void  CisOneWithOneSequenceHelper::BuildLegendreTableForSequence(legendre_t *leg
          {
             if (jacobi(r, 2*i+1) == 1)
                legendrePtr->dualParityMapP1[L_BYTE(i)] |= L_BIT(i);
-            
+
             if (jacobi(r*ssqfb, 2*i+1) == 1)
                legendrePtr->dualParityMapM1[L_BYTE(i)] |= L_BIT(i);
-            
+
             if (!(++stepsDone & 0xffffff))
             {
                percentDone = ((double) stepsDone)/stepsToDo;
                finishTime = (time_t) (startTime + (time(NULL)-startTime)/percentDone);
-               
+
                finish_tm = localtime(&finishTime);
                if (!finish_tm || !strftime(finishTimeBuffer, sizeof(finishTimeBuffer), REPORT_STRFTIME_FORMAT, finish_tm))
                   finishTimeBuffer[0] = '\0';
-      
+
                ip_App->WriteToConsole(COT_SIEVE, "Building Legendre tables: %.1f%% done %s (currently at k=%" PRIu64")", 100.0*percentDone, finishTimeBuffer, legendrePtr->k);
             }
          }
-         
+
          break;
    }
 }

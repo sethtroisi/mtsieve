@@ -30,9 +30,9 @@ protected:
 private:
    void              RemoveTermsSmallPrime(uint64_t prime, uint64_t k);
    void              RemoveTermsBigPrime(uint64_t prime, uint64_t k);
-   
+
    DMDivisorApp           *ip_DMDivisorApp;
-      
+
    uint64_t          il_MinK;
    uint64_t          il_MaxK;
    uint32_t          ii_N;
