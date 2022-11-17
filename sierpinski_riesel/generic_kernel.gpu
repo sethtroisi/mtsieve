@@ -44,7 +44,7 @@ ulong buildTables(ulong thePrime, ulong _q, ulong _r2, ulong _one, ulong *resBDC
    __global const  long  *SEQ_C,
    __global const uint   *SUBSEQ_SEQ,
    __global const uint   *SUBSEQ_Q);
-   
+
 void collectFactor(ulong   p,
                    uint    ssIdx,
                    uint    n,
@@ -58,7 +58,7 @@ ulong buildTables(ulong thePrime, ulong _q, ulong _r2, ulong _one, ulong *resBDC
    device const  long  *SEQ_C,
    device const uint   *SUBSEQ_SEQ,
    device const uint   *SUBSEQ_Q);
-   
+
 void collectFactor(ulong       p,
                    uint        ssIdx,
                    uint        n,
@@ -81,13 +81,13 @@ inline ulong  smod(long a, ulong p)
    if (a >= 0)
    {
       ua = (ulong) a;
-      
+
       return (ua < p) ? ua : ua%p;
    }
    else
    {
       ua = (ulong) -a;
-      
+
       return (ua < p) ? p-ua : p-(ua%p);
    }
 }
@@ -105,11 +105,11 @@ inline ulong  umod(ulong a, ulong p)
 {
    return (a < p) ? a : a%p;
 }
-   
+
 ulong computeOrderOfB(ulong thePrime, ulong _q, ulong _r2, ulong _one, ushort *h_table, ushort *h_olist, ulong *h_BJ64);
 void  hashInsert(ulong bj, uint j, ushort *h_table, ushort *h_olist, ulong *h_BJ64);
 uint  hashLookup(ulong bj, ushort *h_table, ushort *h_olist, ulong *h_BJ64);
-                     
+
 ulong mmmInvert(ulong p);
 ulong mmmOne(ulong _p);
 ulong mmmR2(ulong _p, ulong _q, ulong _one);
@@ -118,7 +118,7 @@ ulong mmmSub(ulong a, ulong b, ulong _p);
 ulong mmmMulmod(ulong a, ulong b, ulong _p, ulong _q);
 ulong mmmNToRes(ulong n, ulong _p, ulong _q, ulong _r2);
 ulong mmmPowmod(ulong resbase, ulong exp, ulong _p, ulong _q, ulong _one);
-   
+
 #if defined(USE_OPENCL)
 __kernel void generic_kernel(__global const ulong  *primes,
                              __global const ulong  *SEQ_K,
@@ -143,7 +143,7 @@ kernel void generic_kernel(device const ulong  *primes,
 #else
    int    gid = tpid;
 #endif
-   
+
    // For our HashTable
    ushort  h_table[HASH_SIZE];
    ushort  h_olist[HASH_ELEMENTS];
@@ -154,19 +154,19 @@ kernel void generic_kernel(device const ulong  *primes,
    uint    idx, j, ssIdx;
 
    for (idx=0; idx<HASH_SIZE; idx++)
-      h_table[idx] = 0;  
-      
+      h_table[idx] = HASH_ELEMENTS;
+
    for (idx=0; idx<HASH_ELEMENTS; idx++)
-      h_BJ64[idx] = 0;  
-   
-   h_BJ64[HASH_ELEMENTS] = ULONG_MAX;   
-   
+      h_BJ64[idx] = 0;
+
+   h_BJ64[HASH_ELEMENTS] = ULONG_MAX;
+
    ulong _q = mmmInvert(thePrime);
    ulong _one = mmmOne(thePrime);
    ulong _r2 = mmmR2(thePrime, _q, _one);
-   
+
    ulong resBM64 = buildTables(thePrime, _q, _r2, _one, resBDCK64, SEQ_K, SEQ_C, SUBSEQ_SEQ, SUBSEQ_Q);
-   
+
    uint orderOfB = computeOrderOfB(thePrime, _q, _r2, _one, h_table, h_olist, h_BJ64);
 
    if (orderOfB > 0)
@@ -174,11 +174,11 @@ kernel void generic_kernel(device const ulong  *primes,
       for (ssIdx=0; ssIdx<SUBSEQUENCES; ssIdx++)
       {
          j = hashLookup(resBDCK64[ssIdx], h_table, h_olist, h_BJ64);
-         
+
          while (j < SIEVE_RANGE)
          {
             collectFactor(thePrime, ssIdx, N_TERM(ssIdx, 0, j), factorCount, factors);
-            
+
             j += orderOfB;
          }
       }
@@ -188,25 +188,25 @@ kernel void generic_kernel(device const ulong  *primes,
       for (ssIdx=0; ssIdx<SUBSEQUENCES; ssIdx++)
       {
          j = hashLookup(resBDCK64[ssIdx], h_table, h_olist, h_BJ64);
-         
+
          if (j != HASH_NOT_FOUND)
             collectFactor(thePrime, ssIdx, N_TERM(ssIdx, 0, j), factorCount, factors);
       }
    }
-   
+
    if (GIANT_STEPS < 2)
       return;
-   
+
    resBM64 = mmmPowmod(resBM64, BABY_STEPS, thePrime, _q, _one);
-   
+
    for (uint i=1; i<GIANT_STEPS; i++)
    {
       for (ssIdx=0; ssIdx<SUBSEQUENCES; ssIdx++)
       {
          resBDCK64[ssIdx] = mmmMulmod(resBDCK64[ssIdx], resBM64, thePrime, _q);
-         
+
          uint j = hashLookup(resBDCK64[ssIdx], h_table, h_olist, h_BJ64);
-         
+
          if (j != HASH_NOT_FOUND)
             collectFactor(thePrime, ssIdx, N_TERM(ssIdx, i, j), factorCount, factors);
       }
@@ -217,13 +217,13 @@ ulong mmmInvert(ulong p)
 {
    ulong p_inv = 1;
    ulong prev = 0;
-   
+
    while (p_inv != prev)
    {
       prev = p_inv;
       p_inv *= (2 - p * p_inv);
    }
-   
+
    return p_inv;
 }
 
@@ -237,11 +237,11 @@ inline ulong mmmOne(ulong _p)
 inline ulong mmmR2(ulong _p, ulong _q, ulong _one)
 {
 	ulong t = mmmAdd(_one, _one, _p);
-   
+
    t = mmmAdd(t, t, _p);   // 4
 	for (size_t i=0; i<5; i++)
       t = mmmMulmod(t, t, _p, _q);   // 4^{2^5} = 2^64
-      
+
 	return t;
 }
 
@@ -267,15 +267,15 @@ ulong mmmMulmod(ulong a, ulong b, ulong _p, ulong _q)
 {
    ulong lo = a * b;
    ulong hi = MUL_HI(a, b);
-   
+
    ulong m = lo * _q;
-   
+
    ulong hi2 = MUL_HI(m, _p);
    long r = (long) hi - (long) hi2;
 
    if (r < 0)
       return (ulong) (r + _p);
-      
+
    return (ulong) r;
 }
 
@@ -284,7 +284,7 @@ ulong   mmmPowmod(ulong resbase, ulong exp, ulong _p, ulong _q, ulong _one)
 {
    ulong x = resbase;
    ulong y = _one;
-   
+
    while (true)
    {
       if (exp & 1)
@@ -313,13 +313,13 @@ ulong computeOrderOfB(ulong thePrime, ulong _q, ulong _r2, ulong _one, ushort *h
    for (j=0; j<BABY_STEPS; j++)
    {
       hashInsert(resBJ, j, h_table, h_olist, h_BJ64);
-      
+
       resBJ = mmmMulmod(resBJ, resBexpQ, thePrime, _q);
-      
+
       if (resBJ == firstResBJ)
          return j + 1;
    }
-   
+
    return 0;
 }
 
@@ -340,16 +340,16 @@ ulong buildTables(ulong thePrime, ulong _q, ulong _r2, ulong _one, ulong *resBDC
    uint  qIdx, seqIdx, ssIdx;
    ulong resBD64[BESTQ];
    ulong resCK64[SEQUENCES];
-   
+
    ulong firstResBM64 = mmmNToRes(invmod(BASE, thePrime), thePrime, _q, _r2);
    ulong resBM64 = firstResBM64;
-   
+
    resBD64[0] = _one;
-   
+
    for (qIdx=1; qIdx<BESTQ; qIdx++)
    {
       resBD64[qIdx] = resBM64;
-      
+
       resBM64 = mmmMulmod(resBM64, firstResBM64, thePrime, _q);
    }
 
@@ -363,12 +363,12 @@ ulong buildTables(ulong thePrime, ulong _q, ulong _r2, ulong _one, ulong *resBDC
       ulong v1 = umod(SEQ_K[seqIdx], thePrime);
       ulong v3 = invmod(v1, thePrime);
       v3 = mmmNToRes(v3, thePrime, _q, _r2);
-      
+
 #ifndef SINGLE_C
       ulong v2 = lmod(-SEQ_C[seqIdx], thePrime);
       v2 = mmmNToRes(v2, thePrime, _q, _r2);
 #endif
-      
+
       resCK64[seqIdx] = mmmMulmod(v2, v3, thePrime, _q);
    }
 
@@ -377,10 +377,10 @@ ulong buildTables(ulong thePrime, ulong _q, ulong _r2, ulong _one, ulong *resBDC
    {
       ulong ck = resCK64[SUBSEQ_SEQ[ssIdx]];
       ulong bd = resBD64[SUBSEQ_Q[ssIdx]];
-      
+
       resBDCK64[ssIdx] = mmmMulmod(bd, ck, thePrime, _q);
    }
-      
+
    return resBM64;
 }
 
@@ -447,7 +447,7 @@ void hashInsert(ulong bj, uint j, ushort *h_table, ushort *h_olist, ulong *h_BJ6
       h_table[slot] = j;
    else
    {
-      h_olist[j] = (h_table[slot] ^ HASH_MASK1);
+      h_olist[j] = h_table[slot];
       h_table[slot] = (j | HASH_MASK1);
    }
 }
@@ -455,25 +455,21 @@ void hashInsert(ulong bj, uint j, ushort *h_table, ushort *h_olist, ulong *h_BJ6
 uint hashLookup(ulong bj, ushort *h_table, ushort *h_olist, ulong *h_BJ64)
 {
    uint   slot;
-   ushort elt;
+   ushort elt, elt_low;
 
    slot = bj & (HASH_SIZE - 1);
    elt = h_table[slot];
+   elt_low = elt & HASH_MASK2;
 
-   if (h_BJ64[elt & HASH_MASK2] == bj)
-      return elt & HASH_MASK2;
-   
-   if ((elt & HASH_MASK1) == 0)
-      return HASH_NOT_FOUND;
+   if (h_BJ64[elt_low] == bj)
+      return elt_low;
 
-   elt &= HASH_MASK2;
-   do
-   {
-      if (h_BJ64[h_olist[elt] & HASH_MASK2] == bj)
-         return h_olist[elt] & HASH_MASK2;
-      
-      elt = h_olist[elt];
-   } while ((elt & HASH_MASK1) == 0);
+   while (elt != elt_low) {
+      elt = h_olist[elt_low];
+      elt_low = elt & HASH_MASK2;
+      if (h_BJ64[elt_low] == bj)
+         return elt_low;
+   }
 
    return HASH_NOT_FOUND;
 }
@@ -502,7 +498,7 @@ void collectFactor(ulong       p,
    // with an error as the buffer is not large enough to capture all factors.
    if (old >= MAX_FACTORS)
       return;
-   
+
    factors[old].x = ssIdx;
    factors[old].y = n;
    factors[old].z = p;

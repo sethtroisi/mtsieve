@@ -77,6 +77,12 @@ SierpinskiRieselApp::SierpinskiRieselApp() : FactorApp()
 #endif
 }
 
+SierpinskiRieselApp::~SierpinskiRieselApp(void)
+{
+    if (ip_AppHelper != nullptr)
+      delete ip_AppHelper;
+}
+
 void SierpinskiRieselApp::Help(void)
 {
    FactorApp::ParentHelp();
@@ -1024,6 +1030,7 @@ void  SierpinskiRieselApp::AddSequence(uint64_t k, int64_t c, uint32_t d)
    seq_t   *seqPtr;
 
    // If base, k, and c are odd then all terms are even
+   /* Disable to allow sequences with even terms (for SEQ/2 work)
    if ((ii_Base % 2) && (k % 2) && (c % 2) && (d == 1))
    {
       WriteToConsole(COT_OTHER, "Sequence %" PRIu64"*%u^n%+" PRId64" not added because all terms are divisible by 2", k, ii_Base, c);
@@ -1036,6 +1043,7 @@ void  SierpinskiRieselApp::AddSequence(uint64_t k, int64_t c, uint32_t d)
       WriteToConsole(COT_OTHER, "Sequence %" PRIu64"*%u^n%+" PRId64" not added because all terms are divisible by 2", k, ii_Base, c);
       return;
    }
+   */
 
    if (ip_FirstSequence != NULL)
    {
