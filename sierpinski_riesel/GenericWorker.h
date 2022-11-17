@@ -56,6 +56,7 @@ private:
    uint32_t          ii_GiantSteps;
 
    HashTable        *ip_HashTable[4];
+   uint64_t         il_HashLookups;
    uint64_t         il_HashInserts;
    uint64_t         il_TotalConflicts;
 

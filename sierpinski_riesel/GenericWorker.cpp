@@ -105,7 +105,8 @@ void  GenericWorker::InitializeWorker(void)
    mBDCK = (MpResVec *) xmalloc(ii_SubsequenceCount*sizeof(MpResVec));
    mBD = (MpResVec *) xmalloc(ii_BestQ*sizeof(MpResVec));
 
-   printf("\t(%u, %u) Q:%u -> %u | %u baby + %u giant\n", ii_MaxN, ii_MinN, ii_BestQ, r, ii_BabySteps, ii_GiantSteps);
+   printf("\t(%u, %u) Q:%u -> %u | %u baby + %u giant | %u subsequences\n",
+           ii_MaxN, ii_MinN, ii_BestQ, r, ii_BabySteps, ii_GiantSteps, ii_SubsequenceCount);
 
     for (idx=0; idx<4; idx++)
        ip_HashTable[idx] = new HashTable(ii_BabySteps);
@@ -261,6 +262,7 @@ void  GenericWorker::DiscreteLogSmallPrimes(uint32_t *b, uint64_t *p)
    if (ii_GiantSteps > 1)
       mBM = mp.pow(mBM, ii_BabySteps);
 
+   il_HashLookups += 4 * ii_SubsequenceCount * ii_GiantSteps;
    for (pIdx=0; pIdx<4; pIdx++)
    {
       solutionCount = 0;
@@ -402,17 +404,23 @@ void  GenericWorker::DiscreteLogLargePrimes(uint32_t *b, uint64_t *p)
    SetupDiscreteLog(b, p, mp, mb);
 
    BabySteps(mp, mb, orderOfB);
-   //if (p[0] % 10000000 == 3)
-   //  printf("total_conflicts @ p=%lu: %lu/%lu = %.2f\n",
-   //          p[0], il_TotalConflicts, il_HashInserts, 1.0 * il_TotalConflicts / il_HashInserts);
+   if (p[0] % 10000000 == 3)
+     printf("total_conflicts @ p=%lu: %lu/%lu = %.2f | reads %lu r/w = %.2f\n",
+             p[0],
+             il_TotalConflicts, il_HashInserts, 1.0 * il_TotalConflicts / il_HashInserts,
+             il_HashLookups, 1.0 * il_HashLookups / il_HashInserts);
 
+   il_HashLookups += 4 * ii_SubsequenceCount;
    for (pIdx=0; pIdx<4; pIdx++)
    {
+      // If the prime looped during babySteps (e.g. is has a very small orderOfB)
       if (orderOfB[pIdx] > 0)
       {
          for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
          {
+            // Check if subsequence is part of this small cycle
             j = ip_HashTable[pIdx]->Lookup(mBDCK[ssIdx][pIdx]);
+
 
             while (j < ii_SieveRange)
             {
@@ -441,6 +449,7 @@ void  GenericWorker::DiscreteLogLargePrimes(uint32_t *b, uint64_t *p)
    // b <- 1/b^m (mod p)
    mBM = mp.pow(mBM, ii_BabySteps);
 
+   il_HashLookups += 4 * (ii_GiantSteps-1) * ii_SubsequenceCount;
    for (i=1; i<ii_GiantSteps; i++)
    {
       for (ssIdx=0; ssIdx<ii_SubsequenceCount; ssIdx++)
